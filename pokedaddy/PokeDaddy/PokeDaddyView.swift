@@ -85,9 +85,12 @@ struct PokeDaddyView: View {
     
     private var signOutButton: some View {
         Button("Sign Out") {
-            authManager.signOut()
+            if !isBlocking {
+                authManager.signOut()
+            }
         }
-        .foregroundColor(.red)
+        .foregroundColor(isBlocking ? .gray : .red)
+        .disabled(isBlocking)
     }
     
 }

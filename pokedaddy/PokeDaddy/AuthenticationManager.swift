@@ -75,6 +75,14 @@ class AuthenticationManager: NSObject, ObservableObject {
     }
     
     func signOut() {
+        // Check if blocking is active before allowing sign out
+        // This prevents users from bypassing restrictions by signing out
+        let isBlocking = UserDefaults.standard.bool(forKey: "isBlocking")
+        if isBlocking {
+            print("Cannot sign out while blocking is active - server must end blocking session first")
+            return
+        }
+        
         currentUser = nil
         isAuthenticated = false
         
