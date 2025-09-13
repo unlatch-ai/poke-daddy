@@ -37,22 +37,21 @@ class AppBlocker: ObservableObject {
         }
     }
     
-    func toggleBlocking(for profile: Profile) {
+    func startBlocking(for profile: Profile) {
         guard isAuthorized else {
             print("Not authorized to block apps")
             return
         }
         
-        isBlocking.toggle()
+        isBlocking = true
         saveBlockingState()
         applyBlockingSettings(for: profile)
     }
     
-    func toggleServerBlocking(profileId: String) {
+    func startServerBlocking(profileId: String) {
         Task {
             do {
-                let action = isBlocking ? "stop" : "start"
-                let response = try await apiService.toggleBlocking(profileId: profileId, action: action)
+                let response = try await apiService.toggleBlocking(profileId: profileId, action: "start")
                 
                 DispatchQueue.main.async {
                     self.isBlocking = response.is_blocking
@@ -60,12 +59,10 @@ class AppBlocker: ObservableObject {
                     
                     if response.is_blocking {
                         self.applyServerBlockingSettings(profileId: profileId)
-                    } else {
-                        self.clearBlockingSettings()
                     }
                 }
             } catch {
-                print("Failed to toggle server blocking: \(error)")
+                print("Failed to start server blocking: \(error)")
             }
         }
     }

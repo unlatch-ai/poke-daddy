@@ -9,7 +9,8 @@ PokeDaddy provides a physical, intentional way to manage smartphone usage. Users
 ## ✨ Key Features
 
 ### iOS App
-- **NFC-Controlled Blocking**: Tap NFC tags containing "POKEDADDY-IS-GREAT" to toggle app restrictions
+- **One-Way Blocking**: Users can start app restrictions with a single tap
+- **Server-Controlled Unblocking**: Only the server can end blocking sessions or unblock individual apps
 - **Apple Sign In Authentication**: Secure user authentication before app access
 - **Visual Interface**: Clean UI with red/green icons indicating blocking state
 - **Profile Management**: Multiple restriction profiles with different app configurations
@@ -20,14 +21,14 @@ PokeDaddy provides a physical, intentional way to manage smartphone usage. Users
 - **User Management**: JWT-based authentication with Apple ID integration
 - **Profile API**: Create, update, and manage restriction profiles
 - **Blocking Sessions**: Track when users are in blocking mode
-- **Programmatic Access**: Only the server can grant app access by ending blocking sessions
+- **Individual App Control**: Server can unblock specific apps or end entire sessions
+- **Admin Endpoints**: Server-only endpoints for programmatic control
 
 ## 🛠 Tech Stack
 
 ### iOS App
 - **Swift/SwiftUI** - Native iOS development
 - **Family Controls & ManagedSettings** - Apple's app blocking frameworks
-- **CoreNFC** - NFC tag reading and writing
 - **AuthenticationServices** - Apple Sign In integration
 
 ### Server
@@ -73,9 +74,9 @@ PokeDaddy provides a physical, intentional way to manage smartphone usage. Users
 
 1. **Authentication**: User signs in with Apple ID (syncs with server)
 2. **Profile Setup**: Create profiles specifying which apps to block
-3. **NFC Tag Creation**: Write "POKEDADDY-IS-GREAT" to NFC tags using the app
-4. **Usage**: Tap phone on NFC tag to toggle between blocking/non-blocking states
-5. **Server Control**: Server determines which apps are restricted based on active sessions
+3. **Start Blocking**: User taps the button to start app restrictions
+4. **Server Control**: Only the server can end blocking sessions or unblock individual apps
+5. **Programmatic Access**: External systems can control app access via server API
 
 ## 🔧 Architecture
 
@@ -84,7 +85,6 @@ PokeDaddy provides a physical, intentional way to manage smartphone usage. Users
 **iOS App:**
 - `APIService` - Server communication
 - `AppBlocker` - Manages app restrictions using Apple's frameworks
-- `NFCReader` - Handles NFC tag operations
 - `ProfileManager` - Manages user profiles (local + server sync)
 - `AuthenticationManager` - Apple Sign In integration
 
@@ -98,15 +98,19 @@ PokeDaddy provides a physical, intentional way to manage smartphone usage. Users
 
 - `POST /auth/register` - User authentication
 - `GET /profiles` - Get user profiles
-- `POST /blocking/toggle` - Start/stop blocking sessions
+- `POST /blocking/toggle` - Start blocking sessions (users can only start)
 - `GET /profiles/{id}/restricted-apps` - Get restricted apps (returns apps only when blocking is active)
+- `POST /admin/unblock-app` - Server-only endpoint to unblock individual apps
+- `POST /admin/end-blocking` - Server-only endpoint to end blocking sessions
 
 ## 🔒 Security & Control
 
-- **Server-Side Authority**: Only the server can determine app access
+- **Server-Side Authority**: Only the server can end blocking or unblock apps
+- **One-Way User Control**: Users can start blocking but cannot stop it themselves
 - **JWT Authentication**: Secure token-based communication
 - **Apple Sign In**: Trusted identity provider
 - **Session-Based Blocking**: Apps are only restricted during active blocking sessions
+- **Admin API**: Server endpoints for external system integration
 
 ## 📄 License
 
@@ -126,4 +130,4 @@ Inspired by the commercial Brick app. PokeDaddy provides an open-source alternat
 
 ---
 
-**Note**: This app requires a physical iOS device with NFC capabilities. The simulator provides mock authentication for development purposes.
+**Note**: This app works on both physical iOS devices and the simulator. No NFC hardware required.

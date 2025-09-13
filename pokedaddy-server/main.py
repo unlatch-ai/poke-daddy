@@ -110,9 +110,14 @@ class ProfileResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-class BlockingRequest(BaseModel):
+class BlockingToggleRequest(BaseModel):
     profile_id: str
     action: str  # "start" or "stop"
+
+class BlockingResponse(BaseModel):
+    is_blocking: bool
+    profile_id: str
+    message: str
 
 class BlockingStatusResponse(BaseModel):
     is_blocking: bool
@@ -329,67 +334,51 @@ async def delete_profile(
     db.commit()
     return {"message": "Profile deleted successfully"}
 
-@app.post("/blocking/toggle", response_model=BlockingStatusResponse)
-async def toggle_blocking(
-    blocking_request: BlockingRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    # Check if profile exists and belongs to user
+@app.post("/blocking/toggle")
+async def toggle_blocking(request: BlockingToggleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Toggle blocking state for a profile - users can only start, server controls stopping"""
+    # Get the profile
     profile = db.query(UserProfile).filter(
-        UserProfile.id == blocking_request.profile_id,
+        UserProfile.id == request.profile_id,
         UserProfile.user_id == current_user.id
     ).first()
     
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     
-    # Check current blocking status
+    # Check if there's an active blocking session
     active_session = db.query(BlockingSession).filter(
         BlockingSession.user_id == current_user.id,
+        BlockingSession.profile_id == request.profile_id,
         BlockingSession.is_active == True
     ).first()
     
-    if blocking_request.action == "start":
+    if request.action == "start":
         if active_session:
-            # End current session
-            active_session.is_active = False
-            active_session.ended_at = datetime.utcnow()
+            return BlockingResponse(
+                is_blocking=True,
+                profile_id=request.profile_id,
+                message="Already blocking"
+            )
         
-        # Start new session
-        import uuid
-        session_id = str(uuid.uuid4())
-        new_session = BlockingSession(
-            id=session_id,
+        # Create new blocking session
+        session = BlockingSession(
             user_id=current_user.id,
-            profile_id=blocking_request.profile_id,
+            profile_id=request.profile_id,
+            started_at=datetime.utcnow(),
             is_active=True
         )
-        db.add(new_session)
+        db.add(session)
         db.commit()
         
-        return BlockingStatusResponse(
+        return BlockingResponse(
             is_blocking=True,
-            profile_id=blocking_request.profile_id,
-            session_id=session_id,
-            started_at=new_session.started_at
-        )
-    
-    elif blocking_request.action == "stop":
-        if active_session:
-            active_session.is_active = False
-            active_session.ended_at = datetime.utcnow()
-            db.commit()
-        
-        return BlockingStatusResponse(
-            is_blocking=False,
-            profile_id=None,
-            session_id=None,
-            started_at=None
+            profile_id=request.profile_id,
+            message="Blocking started"
         )
     
     else:
-        raise HTTPException(status_code=400, detail="Invalid action. Use 'start' or 'stop'")
+        raise HTTPException(status_code=400, detail="Invalid action. Only 'start' is allowed for users")
 
 @app.get("/blocking/status", response_model=BlockingStatusResponse)
 async def get_blocking_status(
@@ -416,13 +405,21 @@ async def get_blocking_status(
             started_at=None
         )
 
-@app.get("/profiles/{profile_id}/restricted-apps", response_model=List[str])
-async def get_restricted_apps(
-    profile_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get restricted apps for a specific profile - this is the key endpoint for app access control"""
+@app.get("/profiles/{profile_id}/restricted-apps")
+async def get_restricted_apps(profile_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get restricted apps for a profile - only returns apps when user is actively blocking"""
+    # Check if user has an active blocking session for this profile
+    active_session = db.query(BlockingSession).filter(
+        BlockingSession.user_id == current_user.id,
+        BlockingSession.profile_id == profile_id,
+        BlockingSession.is_active == True
+    ).first()
+    
+    if not active_session:
+        # Return empty list if not actively blocking
+        return {"restricted_apps": [], "restricted_categories": []}
+    
+    # Get the profile
     profile = db.query(UserProfile).filter(
         UserProfile.id == profile_id,
         UserProfile.user_id == current_user.id
@@ -431,17 +428,64 @@ async def get_restricted_apps(
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     
-    # Check if there's an active blocking session for this profile
+    return {
+        "restricted_apps": json.loads(profile.restricted_apps),
+        "restricted_categories": json.loads(profile.restricted_categories)
+    }
+
+# Server-only endpoint to unblock individual apps
+@app.post("/admin/unblock-app")
+async def unblock_app(app_bundle_id: str, user_id: str, profile_id: str, db: Session = Depends(get_db)):
+    """Server endpoint to unblock individual apps - no authentication required for server use"""
+    # Find active blocking session
     active_session = db.query(BlockingSession).filter(
-        BlockingSession.user_id == current_user.id,
+        BlockingSession.user_id == user_id,
         BlockingSession.profile_id == profile_id,
         BlockingSession.is_active == True
     ).first()
     
-    if active_session:
-        return json.loads(profile.restricted_apps)
-    else:
-        return []  # No restrictions if not in blocking mode
+    if not active_session:
+        raise HTTPException(status_code=404, detail="No active blocking session found")
+    
+    # Get the profile and remove the app from restricted list
+    profile = db.query(UserProfile).filter(
+        UserProfile.id == profile_id,
+        UserProfile.user_id == user_id
+    ).first()
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Remove app from restricted apps list
+    restricted_apps = json.loads(profile.restricted_apps)
+    if app_bundle_id in restricted_apps:
+        restricted_apps.remove(app_bundle_id)
+        profile.restricted_apps = json.dumps(restricted_apps)
+        db.commit()
+        
+        return {"message": f"App {app_bundle_id} unblocked", "remaining_apps": restricted_apps}
+    
+    return {"message": "App was not in restricted list", "remaining_apps": restricted_apps}
+
+@app.post("/admin/end-blocking")
+async def end_blocking_session(user_id: str, profile_id: str, db: Session = Depends(get_db)):
+    """Server endpoint to completely end a blocking session"""
+    # Find active blocking session
+    active_session = db.query(BlockingSession).filter(
+        BlockingSession.user_id == user_id,
+        BlockingSession.profile_id == profile_id,
+        BlockingSession.is_active == True
+    ).first()
+    
+    if not active_session:
+        raise HTTPException(status_code=404, detail="No active blocking session found")
+    
+    # End the blocking session
+    active_session.ended_at = datetime.utcnow()
+    active_session.is_active = False
+    db.commit()
+    
+    return {"message": "Blocking session ended", "session_id": active_session.id}
 
 if __name__ == "__main__":
     import uvicorn

@@ -5,7 +5,6 @@
 //  Created by Oz Tamir on 22/08/2024.
 //
 import SwiftUI
-import CoreNFC
 import SFSymbolsPicker
 import FamilyControls
 import ManagedSettings
@@ -14,12 +13,6 @@ struct PokeDaddyView: View {
     @EnvironmentObject private var appBlocker: AppBlocker
     @EnvironmentObject private var profileManager: ProfileManager
     @EnvironmentObject private var authManager: AuthenticationManager
-    @StateObject private var nfcReader = NFCReader()
-    private let tagPhrase = "POKEDADDY-IS-GREAT"
-    
-    @State private var showWrongTagAlert = false
-    @State private var showCreateTagAlert = false
-    @State private var nfcWriteSuccess = false
     
     private var isBlocking : Bool {
         get {
@@ -46,27 +39,8 @@ struct PokeDaddyView: View {
                 }
             }
             .navigationBarItems(
-                leading: signOutButton,
-                trailing: createTagButton
+                leading: signOutButton
             )
-            .alert(isPresented: $showWrongTagAlert) {
-                Alert(
-                    title: Text("Not a Poke Daddy Tag"),
-                    message: Text("You can create a new Poke Daddy tag using the + button"),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
-            .alert("Create Poke Daddy Tag", isPresented: $showCreateTagAlert) {
-                Button("Create") { createBrokerTag() }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("Do you want to create a new Poke Daddy tag?")
-            }
-            .alert("Tag Creation", isPresented: $nfcWriteSuccess) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text(nfcWriteSuccess ? "Poke Daddy tag created successfully!" : "Failed to create Poke Daddy tag. Please try again.")
-            }
         }
         .animation(.spring(), value: isBlocking)
     }
@@ -74,14 +48,14 @@ struct PokeDaddyView: View {
     @ViewBuilder
     private func blockOrUnblockButton(geometry: GeometryProxy) -> some View {
         VStack(spacing: 8) {
-            Text(isBlocking ? "Tap to unblock" : "Tap to block")
+            Text(isBlocking ? "Apps are blocked - Server must unblock" : "Tap to start blocking")
                 .font(.caption)
                 .opacity(0.75)
                 .transition(.scale)
             
             Button(action: {
                 withAnimation(.spring()) {
-                    scanTag()
+                    toggleBlocking()
                 }
             }) {
                 Image(isBlocking ? "RedIcon" : "GreenIcon")
@@ -96,30 +70,17 @@ struct PokeDaddyView: View {
         .animation(.spring(), value: isBlocking)
     }
     
-    private func scanTag() {
-        nfcReader.scan { payload in
-            if payload == tagPhrase {
-                NSLog("Toggling block")
-                // Use server-based blocking if we have a server profile, otherwise use local
-                if let serverProfileId = profileManager.currentServerProfileId {
-                    appBlocker.toggleServerBlocking(profileId: serverProfileId)
-                } else {
-                    appBlocker.toggleBlocking(for: profileManager.currentProfile)
-                }
+    private func toggleBlocking() {
+        // Only allow starting blocking, not stopping
+        if !isBlocking {
+            NSLog("Starting block")
+            // Use server-based blocking if we have a server profile, otherwise use local
+            if let serverProfileId = profileManager.currentServerProfileId {
+                appBlocker.startServerBlocking(profileId: serverProfileId)
             } else {
-                showWrongTagAlert = true
-                NSLog("Wrong Tag!\nPayload: \(payload)")
+                appBlocker.startBlocking(for: profileManager.currentProfile)
             }
         }
-    }
-    
-    private var createTagButton: some View {
-        Button(action: {
-            showCreateTagAlert = true
-        }) {
-            Image(systemName: "plus")
-        }
-        .disabled(!NFCNDEFReaderSession.readingAvailable)
     }
     
     private var signOutButton: some View {
@@ -129,10 +90,4 @@ struct PokeDaddyView: View {
         .foregroundColor(.red)
     }
     
-    private func createBrokerTag() {
-        nfcReader.write(tagPhrase) { success in
-            nfcWriteSuccess = !success
-            showCreateTagAlert = false
-        }
-    }
 }
