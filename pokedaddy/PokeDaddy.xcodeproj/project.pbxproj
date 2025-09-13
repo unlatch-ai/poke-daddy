@@ -10,12 +10,12 @@
 		F51C38D22C775953003B4EB3 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F51C38D02C77594E003B4EB3 /* CoreNFC.framework */; };
 		F51C38D72C775CAF003B4EB3 /* AppBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38D62C775CAF003B4EB3 /* AppBlocker.swift */; };
 		F51C38D92C775CEC003B4EB3 /* NfcReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38D82C775CEC003B4EB3 /* NfcReader.swift */; };
-		F51C38DB2C775D0B003B4EB3 /* BrockerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38DA2C775D0B003B4EB3 /* BrockerView.swift */; };
+		F51C38DB2C775D0B003B4EB3 /* PokeDaddyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38DA2C775D0B003B4EB3 /* PokeDaddyView.swift */; };
 		F51C38E12C77DADA003B4EB3 /* ProfileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38E02C77DADA003B4EB3 /* ProfileManager.swift */; };
 		F51C38E42C77E847003B4EB3 /* SFSymbolsPicker in Frameworks */ = {isa = PBXBuildFile; productRef = F51C38E32C77E847003B4EB3 /* SFSymbolsPicker */; };
 		F51C38E82C78ADB5003B4EB3 /* ProfilePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38E72C78ADB5003B4EB3 /* ProfilePicker.swift */; };
 		F51C38EA2C78B47A003B4EB3 /* ProfileFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38E92C78B47A003B4EB3 /* ProfileFormView.swift */; };
-		F5A3B05F2C733E3400BD6C7F /* BrokeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B05E2C733E3400BD6C7F /* BrokeApp.swift */; };
+		F5A3B05F2C733E3400BD6C7F /* PokeDaddyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B05E2C733E3400BD6C7F /* PokeDaddyApp.swift */; };
 		F5A3B0632C733E3500BD6C7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F5A3B0622C733E3500BD6C7F /* Assets.xcassets */; };
 		F5A3B0662C733E3500BD6C7F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F5A3B0652C733E3500BD6C7F /* Preview Assets.xcassets */; };
 		F5A3B0AA2C94E3400BD6C7F /* AuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B0A92C94E3400BD6C7F /* AuthenticationManager.swift */; };
@@ -33,13 +33,13 @@
 		F51C38E72C78ADB5003B4EB3 /* ProfilePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePicker.swift; sourceTree = "<group>"; };
 		F51C38E92C78B47A003B4EB3 /* ProfileFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileFormView.swift; sourceTree = "<group>"; };
 		F5A3B05B2C733E3400BD6C7F /* PokeDaddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PokeDaddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F5A3B0A92C94E3400BD6C7F /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
-		F5A3B0AB2C94E3500BD6C7F /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
-		F5A3B0AD2C94E3600BD6C7F /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		F5A3B05E2C733E3400BD6C7F /* PokeDaddyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokeDaddyApp.swift; sourceTree = "<group>"; };
 		F5A3B0622C733E3500BD6C7F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F5A3B0652C733E3500BD6C7F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		F5A3B06C2C733EA200BD6C7F /* PokeDaddy.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PokeDaddy.entitlements; sourceTree = "<group>"; };
+		F5A3B0A92C94E3400BD6C7F /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
+		F5A3B0AB2C94E3500BD6C7F /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		F5A3B0AD2C94E3600BD6C7F /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,7 +163,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F5A3B05A2C733E3400BD6C7F /* Broke */,
+				F5A3B05A2C733E3400BD6C7F /* PokeDaddy */,
 			);
 		};
 /* End PBXProject section */
@@ -326,10 +326,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PokeDaddy/PokeDaddy.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"PokeDaddy/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = MJ6MS25PQX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PokeDaddy/Info.plist;
@@ -368,10 +368,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PokeDaddy/PokeDaddy.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"PokeDaddy/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = MJ6MS25PQX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PokeDaddy/Info.plist;
