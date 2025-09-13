@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, String, Text, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
 from typing import List, Optional
@@ -11,10 +11,21 @@ import json
 import os
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./pokedaddy.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+POSTGRES_URL = os.getenv("POSTGRES_URL")
+if not POSTGRES_URL:
+    raise ValueError("POSTGRES_URL environment variable is required")
+
+# Convert postgres:// to postgresql:// for SQLAlchemy 2.0 compatibility
+if POSTGRES_URL.startswith("postgres://"):
+    POSTGRES_URL = POSTGRES_URL.replace("postgres://", "postgresql://", 1)
+
+engine = create_engine(POSTGRES_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -362,7 +373,9 @@ async def toggle_blocking(request: BlockingToggleRequest, current_user: User = D
             )
         
         # Create new blocking session
+        import uuid
         session = BlockingSession(
+            id=str(uuid.uuid4()),
             user_id=current_user.id,
             profile_id=request.profile_id,
             started_at=datetime.utcnow(),
