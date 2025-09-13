@@ -186,7 +186,7 @@ def get_current_user(db: Session = Depends(get_db), user_id: str = Depends(verif
 # API Endpoints
 @app.get("/")
 async def root():
-    return {"message": "PokeDaddy Server API", "version": "1.0.0"}
+    return {"message": "PokeDaddy Server API", "version": "1.0.0", "status": "running"}
 
 @app.post("/auth/register", response_model=Token)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
