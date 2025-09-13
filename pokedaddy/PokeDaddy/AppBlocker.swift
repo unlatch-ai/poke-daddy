@@ -24,6 +24,13 @@ class AppBlocker: ObservableObject {
     }
     
     func requestAuthorization() async {
+        #if targetEnvironment(simulator)
+        // Family Controls doesn't work in simulator, so we'll mock authorization
+        print("Running in simulator - mocking Family Controls authorization")
+        DispatchQueue.main.async {
+            self.isAuthorized = true
+        }
+        #else
         do {
             try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
             DispatchQueue.main.async {
@@ -35,6 +42,7 @@ class AppBlocker: ObservableObject {
                 self.isAuthorized = false
             }
         }
+        #endif
     }
     
     func startBlocking(for profile: Profile) {
@@ -90,12 +98,16 @@ class AppBlocker: ObservableObject {
             do {
                 let restrictedApps = try await apiService.getRestrictedApps(profileId: profileId)
                 DispatchQueue.main.async {
+                    #if targetEnvironment(simulator)
+                    NSLog("[SIMULATOR] Mock blocking \(restrictedApps.count) apps from server")
+                    #else
                     // For now, we'll block all apps since we need to convert bundle IDs to ApplicationTokens
                     // In a real implementation, you'd need to map bundle IDs to ApplicationTokens
                     NSLog("Blocking \(restrictedApps.count) apps from server")
                     // TODO: Implement proper conversion from bundle IDs to ApplicationTokens
                     self.store.shield.applications = nil // Placeholder - needs proper implementation
                     self.store.shield.applicationCategories = ShieldSettings.ActivityCategoryPolicy.none
+                    #endif
                 }
             } catch {
                 print("Failed to get restricted apps: \(error)")
@@ -104,11 +116,23 @@ class AppBlocker: ObservableObject {
     }
     
     private func clearBlockingSettings() {
+        #if targetEnvironment(simulator)
+        NSLog("[SIMULATOR] Mock clearing blocking settings")
+        #else
         store.shield.applications = nil
         store.shield.applicationCategories = ShieldSettings.ActivityCategoryPolicy.none
+        #endif
     }
     
     func applyBlockingSettings(for profile: Profile) {
+        #if targetEnvironment(simulator)
+        // Mock blocking behavior in simulator
+        if isBlocking {
+            NSLog("[SIMULATOR] Mock blocking \(profile.appTokens.count) apps")
+        } else {
+            NSLog("[SIMULATOR] Mock unblocking apps")
+        }
+        #else
         if isBlocking {
             NSLog("Blocking \(profile.appTokens.count) apps")
             store.shield.applications = profile.appTokens.isEmpty ? nil : profile.appTokens
@@ -117,6 +141,7 @@ class AppBlocker: ObservableObject {
             store.shield.applications = nil
             store.shield.applicationCategories = ShieldSettings.ActivityCategoryPolicy.none
         }
+        #endif
     }
     
     private func loadBlockingState() {
