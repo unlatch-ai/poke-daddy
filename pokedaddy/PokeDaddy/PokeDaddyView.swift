@@ -37,7 +37,8 @@ struct PokeDaddyView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(isBlocking ? Color("BlockingBackground") : Color("NonBlockingBackground"))
+            // Use global gradient background from PokeDaddyApp
+            .background(Color.clear)
             .navigationBarItems(leading: signOutButton, trailing: refreshButton)
         }
         .animation(.spring(), value: isBlocking)
@@ -50,6 +51,11 @@ struct PokeDaddyView: View {
                 appBlocker.refreshServerRestrictions(profileId: serverId)
             }
             maybePromptForProfile()
+        }
+        .onChange(of: profileManager.currentServerProfileId) { _, newId in
+            if isBlocking, let id = newId {
+                appBlocker.startServerBlocking(profileId: id)
+            }
         }
         .onChange(of: authManager.isAuthenticated) { _, newVal in
             if newVal {
@@ -91,25 +97,38 @@ struct PokeDaddyView: View {
     
     @ViewBuilder
     private var blockOrUnblockSection: some View {
-        VStack(spacing: 8) {
-            Text(isBlocking ? "Apps are blocked - Server must unblock" : "Tap to start blocking")
-                .font(.caption)
-                .opacity(0.75)
+        VStack(spacing: 12) {
+            Text(isBlocking ? "Blocking Active" : "Tap to Start Blocking")
+                .font(.callout)
+                .foregroundStyle(.secondary)
                 .transition(.scale)
 
-            Button(action: {
-                withAnimation(.spring()) { toggleBlocking() }
-            }) {
-                Image(isBlocking ? "RedIcon" : "GreenIcon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 280)
-                    .frame(maxWidth: .infinity)
+            Button(action: { withAnimation(.spring()) { toggleBlocking() } }) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(.ultraThinMaterial.opacity(0.5))
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: isBlocking ? [Color("BlockingBackground"), Design.brandEnd] : [Design.brandStart, Design.brandEnd],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ), lineWidth: 2
+                        )
+                    Image(isBlocking ? "RedIcon" : "GreenIcon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .padding(24)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 280)
+                .shadow(color: Design.brandEnd.opacity(0.25), radius: 18, x: 0, y: 10)
             }
+            .buttonStyle(.plain)
             .transition(.scale)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
+        .padding(.horizontal, 16)
         .frame(maxHeight: isBlocking ? .infinity : nil, alignment: .center)
         .animation(.spring(), value: isBlocking)
     }
@@ -120,8 +139,12 @@ struct PokeDaddyView: View {
             NSLog("Starting block")
             // MVP: always use local blocking (server integration handled later)
             appBlocker.startBlocking(for: profileManager.currentProfile)
-            if let serverId = profileManager.currentServerProfileId {
-                appBlocker.startServerBlocking(profileId: serverId)
+            profileManager.ensureServerProfileIdReady { serverId in
+                if let serverId = serverId {
+                    appBlocker.startServerBlocking(profileId: serverId)
+                } else {
+                    NSLog("[Server] No server profile id available; skipping start call")
+                }
             }
         }
     }

@@ -96,6 +96,27 @@ class ProfileManager: ObservableObject {
             }
         }
     }
+
+    // Ensure we have a server profile id; if missing, fetch profiles and pick default, then return it.
+    func ensureServerProfileIdReady(completion: @escaping (String?) -> Void) {
+        if let id = currentServerProfileId { completion(id); return }
+        Task {
+            do {
+                let profiles = try await apiService.getProfiles()
+                DispatchQueue.main.async {
+                    self.serverProfiles = profiles
+                    if self.currentServerProfileId == nil, let defaultProfile = profiles.first(where: { $0.is_default }) ?? profiles.first {
+                        self.currentServerProfileId = defaultProfile.id
+                        self.saveServerProfileId()
+                    }
+                    completion(self.currentServerProfileId)
+                }
+            } catch {
+                print("Failed to load server profiles: \(error)")
+                DispatchQueue.main.async { completion(nil) }
+            }
+        }
+    }
     
     func createServerProfile(name: String, icon: String, restrictedApps: [String], restrictedCategories: [String]) {
         Task {

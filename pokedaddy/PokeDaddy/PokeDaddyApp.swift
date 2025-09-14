@@ -15,17 +15,21 @@ struct PokeDaddyApp: App {
     
     var body: some Scene {
         WindowGroup {
-            Group {
-                if authManager.isAuthenticated {
-                    PokeDaddyView()
-                        .environmentObject(appBlocker)
-                        .environmentObject(profileManager)
-                        .environmentObject(authManager)
-                } else {
-                    LoginView()
-                        .environmentObject(authManager)
+            ZStack {
+                Design.Background()
+                Group {
+                    if authManager.isAuthenticated {
+                        PokeDaddyView()
+                            .environmentObject(appBlocker)
+                            .environmentObject(profileManager)
+                            .environmentObject(authManager)
+                    } else {
+                        LoginView()
+                            .environmentObject(authManager)
+                    }
                 }
             }
+            .tint(Design.brandAccent)
             .animation(.easeInOut(duration: 0.3), value: authManager.isAuthenticated)
         }
     }

@@ -91,6 +91,8 @@ struct ProfileFormView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
             .navigationTitle(profile == nil ? "Add Profile" : "Edit Profile")
             .navigationBarItems(
                 leading: Button("Cancel", action: onDismiss),

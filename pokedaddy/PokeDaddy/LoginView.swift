@@ -14,44 +14,34 @@ struct LoginView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color("NonBlockingBackground"),
-                        Color("BlockingBackground").opacity(0.3)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
-                VStack(spacing: 40) {
+                // Background now provided by Design.Background at app root
+                VStack(spacing: 36) {
                     Spacer()
                     
                     // App logo and title
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         Image("GreenIcon")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 120, height: 120)
+                            .frame(width: 112, height: 112)
                         
                         VStack(spacing: 8) {
                             Text("Poke Daddy")
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
-                                .foregroundColor(.primary)
+                                .foregroundStyle(.primary)
                             
                             Text("Smart App Management")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                         }
                     }
                     
-                    Spacer()
+                    Spacer(minLength: 0)
                     
                     // Sign in section
-                    VStack(spacing: 24) {
+                    VStack(spacing: 18) {
                         VStack(spacing: 12) {
                             Text("Welcome to Poke Daddy")
                                 .font(.title2)
@@ -59,29 +49,26 @@ struct LoginView: View {
                             
                             Text("Sign in to sync your app restrictions across all your devices")
                                 .font(.body)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 20)
                         }
                         
                         // Sign in with Apple button or simulator mock button
                         #if targetEnvironment(simulator)
-                        Button(action: {
-                            authManager.signInWithApple()
-                        }) {
-                            HStack {
-                                Image(systemName: "applelogo")
-                                    .foregroundColor(.white)
+                        Button(action: { authManager.signInWithApple() }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "applelogo").foregroundColor(.white)
                                 Text("Continue with Apple")
                                     .foregroundColor(.white)
                                     .fontWeight(.medium)
                             }
                             .frame(maxWidth: .infinity)
-                            .frame(height: 50)
+                            .frame(height: 52)
                             .background(Color.black)
-                            .cornerRadius(8)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         }
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, 28)
                         #else
                         SignInWithAppleButton(
                             onRequest: { request in
@@ -92,8 +79,8 @@ struct LoginView: View {
                             }
                         )
                         .signInWithAppleButtonStyle(.black)
-                        .frame(height: 50)
-                        .padding(.horizontal, 40)
+                        .frame(height: 52)
+                        .padding(.horizontal, 28)
                         .onTapGesture {
                             authManager.signInWithApple()
                         }
@@ -106,7 +93,7 @@ struct LoginView: View {
                                     .scaleEffect(0.8)
                                 Text("Signing in...")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                             }
                             .padding(.top, 8)
                         }
@@ -120,6 +107,8 @@ struct LoginView: View {
                                 .padding(.horizontal, 20)
                         }
                     }
+                    .glass(cornerRadius: 24)
+                    .padding(.horizontal, 20)
                     
                     Spacer()
                     
@@ -128,11 +117,11 @@ struct LoginView: View {
                         Text("Your privacy is protected")
                             .font(.caption)
                             .fontWeight(.medium)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                         
                         Text("We only store your app preferences. Your personal information stays with Apple.")
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
                     }

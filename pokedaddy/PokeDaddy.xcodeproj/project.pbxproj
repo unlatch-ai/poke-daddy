@@ -31,6 +31,7 @@
 		F5A3B0AA2C94E3400BD6C7F /* AuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B0A92C94E3400BD6C7F /* AuthenticationManager.swift */; };
 		F5A3B0AC2C94E3500BD6C7F /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B0AB2C94E3500BD6C7F /* LoginView.swift */; };
 		F5A3B0AE2C94E3600BD6C7F /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B0AD2C94E3600BD6C7F /* APIService.swift */; };
+        F5A3B0D22C9A000100BD6C7F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B0D12C9A000100BD6C7F /* DesignSystem.swift */; };
         F5A3B0F22C99AAAA00BD6C7F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F5A3B0F12C99AAAA00BD6C7F /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
@@ -91,6 +92,7 @@
 		F5A3B0AB2C94E3500BD6C7F /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		F5A3B0AD2C94E3600BD6C7F /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
         F5A3B0F12C99AAAA00BD6C7F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+        F5A3B0D12C9A000100BD6C7F /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -203,6 +205,7 @@
 				F51C38E02C77DADA003B4EB3 /* ProfileManager.swift */,
 				F51C38E72C78ADB5003B4EB3 /* ProfilePicker.swift */,
 				F5A3B05E2C733E3400BD6C7F /* PokeDaddyApp.swift */,
+				F5A3B0D12C9A000100BD6C7F /* DesignSystem.swift */,
 				F51C38DA2C775D0B003B4EB3 /* PokeDaddyView.swift */,
 				F51C38D82C775CEC003B4EB3 /* NfcReader.swift */,
 				F51C38D62C775CAF003B4EB3 /* AppBlocker.swift */,
@@ -400,6 +403,7 @@
 				6EC4249A2E7641300019E394 /* MessageComposer.swift in Sources */,
 				6EC4249B2E7641300019E394 /* AppGroupBridge.swift in Sources */,
 				6EC424D42E7651A80019E394 /* TokenRegistry.swift in Sources */,
+				F5A3B0D22C9A000100BD6C7F /* DesignSystem.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
