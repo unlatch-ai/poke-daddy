@@ -48,6 +48,13 @@ def get_pokedaddy_info() -> dict:
 # Configuration
 POKEDADDY_SERVER_URL = os.environ.get("POKEDADDY_SERVER_URL", "https://poke-daddy.vercel.app")
 
+@mcp.tool(description="Show MCP config, including server URL and environment")
+def get_mcp_config() -> dict:
+    return {
+        "pokedaddy_server_url": POKEDADDY_SERVER_URL,
+        "environment": os.environ.get("ENVIRONMENT", "development")
+    }
+
 @mcp.tool(description="Get a user's current blocking status and restricted apps using their email")
 def get_user_blocking_status(user_email: str) -> dict:
     """Calls the server's /admin/status-by-email to return status for a given user."""
@@ -55,7 +62,9 @@ def get_user_blocking_status(user_email: str) -> dict:
         if not user_email:
             return {"error": "No user email provided", "valid": False}
         url = f"{POKEDADDY_SERVER_URL}/admin/status-by-email"
-        r = requests.get(url, params={"email": user_email}, timeout=10)
+        print(f"[MCP] GET {url}?email=…")
+        r = requests.get(url, params={"email": user_email}, timeout=25)
+        print(f"[MCP] status response: {r.status_code}")
         if r.status_code != 200:
             return {"error": f"status lookup failed: {r.status_code} {r.text}", "valid": False}
         data = r.json()
@@ -72,7 +81,9 @@ def unblock_app(user_email: str, app_bundle_id: str, reason: str = "") -> dict:
         if not app_bundle_id:
             return {"error": "No app bundle ID provided", "success": False}
         url = f"{POKEDADDY_SERVER_URL}/admin/unblock-app-by-email"
-        r = requests.post(url, params={"email": user_email, "app_bundle_id": app_bundle_id}, timeout=10)
+        print(f"[MCP] POST {url}?email=…&app_bundle_id={app_bundle_id}")
+        r = requests.post(url, params={"email": user_email, "app_bundle_id": app_bundle_id}, timeout=25)
+        print(f"[MCP] unblock response: {r.status_code}")
         if r.status_code != 200:
             return {"error": f"unblock failed: {r.status_code} {r.text}", "success": False}
         data = r.json()
@@ -88,7 +99,9 @@ def end_blocking_session(user_email: str, reason: str = "") -> dict:
         if not user_email:
             return {"error": "No user email provided", "success": False}
         url = f"{POKEDADDY_SERVER_URL}/admin/end-blocking-by-email"
-        r = requests.post(url, params={"email": user_email}, timeout=10)
+        print(f"[MCP] POST {url}?email=…")
+        r = requests.post(url, params={"email": user_email}, timeout=25)
+        print(f"[MCP] end response: {r.status_code}")
         if r.status_code != 200:
             return {"error": f"end-blocking failed: {r.status_code} {r.text}", "success": False}
         data = r.json()
@@ -96,6 +109,32 @@ def end_blocking_session(user_email: str, reason: str = "") -> dict:
         return data
     except Exception as e:
         return {"error": f"Failed to end blocking session: {str(e)}", "success": False}
+
+
+@mcp.tool(description="Start a user's blocking session by email (optionally choose a profile)")
+def start_blocking_session(user_email: str, profile_id: str = "", profile_name: str = "") -> dict:
+    """Calls /admin/start-blocking-by-email to start a blocking session for the user.
+    If profile_id is blank, the server uses the default or first profile.
+    """
+    try:
+        if not user_email:
+            return {"error": "No user email provided", "success": False}
+        url = f"{POKEDADDY_SERVER_URL}/admin/start-blocking-by-email"
+        params = {"email": user_email}
+        if profile_id:
+            params["profile_id"] = profile_id
+        if profile_name:
+            params["profile_name"] = profile_name
+        print(f"[MCP] POST {url} {params}")
+        r = requests.post(url, params=params, timeout=25)
+        print(f"[MCP] start response: {r.status_code} {r.text[:200]}")
+        if r.status_code != 200:
+            return {"error": f"start-blocking failed: {r.status_code} {r.text}", "success": False}
+        data = r.json()
+        data.update({"success": True})
+        return data
+    except Exception as e:
+        return {"error": f"Failed to start blocking session: {str(e)}", "success": False}
 
 
 if __name__ == "__main__":

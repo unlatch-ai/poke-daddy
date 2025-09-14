@@ -651,6 +651,69 @@ async def admin_end_blocking_by_email(email: str, db: Session = Depends(get_db))
     db.commit()
     return {"message": "Blocking session ended", "session_id": active_session.id}
 
+@app.post("/admin/start-blocking-by-email")
+async def admin_start_blocking_by_email(
+    email: str,
+    profile_id: Optional[str] = None,
+    profile_name: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Start a blocking session for a user by email. If profile_id is not provided,
+    use the user's default profile, or fall back to the first available profile.
+    """
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Resolve profile
+    profile = None
+    if profile_id:
+        profile = db.query(UserProfile).filter(UserProfile.id == profile_id, UserProfile.user_id == user.id).first()
+        if not profile:
+            raise HTTPException(status_code=404, detail="Profile not found")
+    else:
+        q = db.query(UserProfile).filter(UserProfile.user_id == user.id)
+        if profile_name:
+            profile = q.filter(UserProfile.name == profile_name).first()
+        if not profile:
+            profile = q.filter(UserProfile.is_default == True).first()
+        if not profile:
+            profile = q.first()
+        if not profile:
+            raise HTTPException(status_code=404, detail="No profiles available for user")
+
+    # Check existing active session
+    active_session = db.query(BlockingSession).filter(
+        BlockingSession.user_id == user.id,
+        BlockingSession.profile_id == profile.id,
+        BlockingSession.is_active == True
+    ).first()
+    if active_session:
+        return {
+            "message": "Already blocking",
+            "session_id": active_session.id,
+            "profile_id": profile.id,
+            "is_blocking": True
+        }
+
+    # Create new session
+    import uuid
+    session = BlockingSession(
+        id=str(uuid.uuid4()),
+        user_id=user.id,
+        profile_id=profile.id,
+        started_at=datetime.utcnow(),
+        is_active=True
+    )
+    db.add(session)
+    db.commit()
+    return {
+        "message": "Blocking started",
+        "session_id": session.id,
+        "profile_id": profile.id,
+        "is_blocking": True
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
