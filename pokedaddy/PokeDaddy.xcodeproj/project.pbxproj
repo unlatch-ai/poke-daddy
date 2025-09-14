@@ -7,16 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6EC424922E76410E0019E394 /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4248D2E76410E0019E394 /* ShieldActionExtension.swift */; };
-		6EC424932E76410E0019E394 /* ShieldConfigurationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4248F2E76410E0019E394 /* ShieldConfigurationExtension.swift */; };
-		6EC424942E76410E0019E394 /* ShieldConfigurationExtension-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6EC424902E76410E0019E394 /* ShieldConfigurationExtension-Info.plist */; };
-		6EC424952E76410E0019E394 /* ShieldActionExtension-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6EC4248E2E76410E0019E394 /* ShieldActionExtension-Info.plist */; };
 		6EC4249A2E7641300019E394 /* MessageComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC424962E7641300019E394 /* MessageComposer.swift */; };
 		6EC4249B2E7641300019E394 /* AppGroupBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC424982E7641300019E394 /* AppGroupBridge.swift */; };
 		6EC424A42E7641F10019E394 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EC424A32E7641F10019E394 /* ManagedSettingsUI.framework */; };
 		6EC424AC2E7641F10019E394 /* PokeDaddyShieldConfiguration.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6EC424A02E7641F10019E394 /* PokeDaddyShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6EC424B72E7642270019E394 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EC424A12E7641F10019E394 /* ManagedSettings.framework */; };
 		6EC424BF2E7642270019E394 /* PokeDaddyShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6EC424B62E7642260019E394 /* PokeDaddyShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6EC424CC2E764BFD0019E394 /* AppGroupBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC424982E7641300019E394 /* AppGroupBridge.swift */; };
+		6EC424CD2E764BFD0019E394 /* AppGroupBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC424982E7641300019E394 /* AppGroupBridge.swift */; };
 		F51C38D22C775953003B4EB3 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F51C38D02C77594E003B4EB3 /* CoreNFC.framework */; };
 		F51C38D72C775CAF003B4EB3 /* AppBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38D62C775CAF003B4EB3 /* AppBlocker.swift */; };
 		F51C38D92C775CEC003B4EB3 /* NfcReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38D82C775CEC003B4EB3 /* NfcReader.swift */; };
@@ -66,11 +64,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		6EC4248C2E76410E0019E394 /* PokeDaddyShieldExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PokeDaddyShieldExtension.entitlements; sourceTree = "<group>"; };
-		6EC4248D2E76410E0019E394 /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
-		6EC4248E2E76410E0019E394 /* ShieldActionExtension-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ShieldActionExtension-Info.plist"; sourceTree = "<group>"; };
-		6EC4248F2E76410E0019E394 /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
-		6EC424902E76410E0019E394 /* ShieldConfigurationExtension-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ShieldConfigurationExtension-Info.plist"; sourceTree = "<group>"; };
 		6EC424962E7641300019E394 /* MessageComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComposer.swift; sourceTree = "<group>"; };
 		6EC424982E7641300019E394 /* AppGroupBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupBridge.swift; sourceTree = "<group>"; };
 		6EC424A02E7641F10019E394 /* PokeDaddyShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PokeDaddyShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,25 +89,25 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		6EC424AD2E7641F10019E394 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 6EC4249F2E7641F10019E394 /* PokeDaddyShieldConfiguration */;
-		};
-		6EC424C02E7642270019E394 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		6EC424D02E764F7F0019E394 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 6EC424B52E7642260019E394 /* PokeDaddyShieldAction */;
 		};
+		6EC424D12E764F820019E394 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6EC4249F2E7641F10019E394 /* PokeDaddyShieldConfiguration */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		6EC424A52E7641F10019E394 /* PokeDaddyShieldConfiguration */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (6EC424AD2E7641F10019E394 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PokeDaddyShieldConfiguration; sourceTree = "<group>"; };
-		6EC424B82E7642270019E394 /* PokeDaddyShieldAction */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (6EC424C02E7642270019E394 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PokeDaddyShieldAction; sourceTree = "<group>"; };
+		6EC424A52E7641F10019E394 /* PokeDaddyShieldConfiguration */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (6EC424D12E764F820019E394 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PokeDaddyShieldConfiguration; sourceTree = "<group>"; };
+		6EC424B82E7642270019E394 /* PokeDaddyShieldAction */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (6EC424D02E764F7F0019E394 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PokeDaddyShieldAction; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -146,18 +139,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		6EC424912E76410E0019E394 /* PokeDaddyShieldExtension */ = {
-			isa = PBXGroup;
-			children = (
-				6EC4248C2E76410E0019E394 /* PokeDaddyShieldExtension.entitlements */,
-				6EC4248D2E76410E0019E394 /* ShieldActionExtension.swift */,
-				6EC4248E2E76410E0019E394 /* ShieldActionExtension-Info.plist */,
-				6EC4248F2E76410E0019E394 /* ShieldConfigurationExtension.swift */,
-				6EC424902E76410E0019E394 /* ShieldConfigurationExtension-Info.plist */,
-			);
-			path = PokeDaddyShieldExtension;
-			sourceTree = "<group>";
-		};
 		6EC424972E7641300019E394 /* Messaging */ = {
 			isa = PBXGroup;
 			children = (
@@ -189,7 +170,6 @@
 			children = (
 				6EC424972E7641300019E394 /* Messaging */,
 				6EC424992E7641300019E394 /* Shared */,
-				6EC424912E76410E0019E394 /* PokeDaddyShieldExtension */,
 				F5A3B05D2C733E3400BD6C7F /* PokeDaddy */,
 				6EC424A52E7641F10019E394 /* PokeDaddyShieldConfiguration */,
 				6EC424B82E7642270019E394 /* PokeDaddyShieldAction */,
@@ -372,8 +352,6 @@
 			files = (
 				F5A3B0662C733E3500BD6C7F /* Preview Assets.xcassets in Resources */,
 				F5A3B0632C733E3500BD6C7F /* Assets.xcassets in Resources */,
-				6EC424942E76410E0019E394 /* ShieldConfigurationExtension-Info.plist in Resources */,
-				6EC424952E76410E0019E394 /* ShieldActionExtension-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -384,6 +362,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6EC424CC2E764BFD0019E394 /* AppGroupBridge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -391,6 +370,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6EC424CD2E764BFD0019E394 /* AppGroupBridge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -406,8 +386,6 @@
 				F51C38E82C78ADB5003B4EB3 /* ProfilePicker.swift in Sources */,
 				F51C38D72C775CAF003B4EB3 /* AppBlocker.swift in Sources */,
 				F5A3B0AA2C94E3400BD6C7F /* AuthenticationManager.swift in Sources */,
-				6EC424922E76410E0019E394 /* ShieldActionExtension.swift in Sources */,
-				6EC424932E76410E0019E394 /* ShieldConfigurationExtension.swift in Sources */,
 				F5A3B0AC2C94E3500BD6C7F /* LoginView.swift in Sources */,
 				F5A3B0AE2C94E3600BD6C7F /* APIService.swift in Sources */,
 				6EC4249A2E7641300019E394 /* MessageComposer.swift in Sources */,
@@ -439,10 +417,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "PokeDaddyShieldExtension/PokeDaddyShieldExtension.entitlements Shared/AppGroupBridge.swift PokeDaddyShieldExtension/ShieldConfigurationExtension.swift PokeDaddyShieldExtension/ShieldConfigurationExtension-Info.plist";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = MJ6MS25PQX;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PokeDaddyShieldConfiguration/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PokeDaddyShieldConfiguration;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -472,10 +450,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "PokeDaddyShieldExtension/PokeDaddyShieldExtension.entitlements Shared/AppGroupBridge.swift PokeDaddyShieldExtension/ShieldConfigurationExtension.swift PokeDaddyShieldExtension/ShieldConfigurationExtension-Info.plist";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = MJ6MS25PQX;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PokeDaddyShieldConfiguration/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PokeDaddyShieldConfiguration;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -504,10 +482,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "PokeDaddyShieldExtension/ShieldActionExtension.swift Shared/AppGroupBridge.swift PokeDaddyShieldExtension/PokeDaddyShieldExtension.entitlements PokeDaddyShieldExtension/ShieldActionExtension-Info.plist";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = MJ6MS25PQX;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PokeDaddyShieldAction/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PokeDaddyShieldAction;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -537,10 +515,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "PokeDaddyShieldExtension/ShieldActionExtension.swift Shared/AppGroupBridge.swift PokeDaddyShieldExtension/PokeDaddyShieldExtension.entitlements PokeDaddyShieldExtension/ShieldActionExtension-Info.plist";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = MJ6MS25PQX;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PokeDaddyShieldAction/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = PokeDaddyShieldAction;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -688,10 +666,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "Messaging/MessageComposer.swift PokeDaddy/Preview\\ Content";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = MJ6MS25PQX;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PokeDaddy/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Poke Daddy";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -730,10 +708,10 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "Messaging/MessageComposer.swift PokeDaddy/Preview\\ Content";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = MJ6MS25PQX;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = PokeDaddy/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Poke Daddy";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";

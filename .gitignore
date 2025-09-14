@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+
+# Xcode / iOS
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# Logs
+*.log
+
+# Python (server)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.env
+.env.*
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# Local DB
+pokedaddy-server/pokedaddy.db
+
+# Node (just in case)
+node_modules/
+

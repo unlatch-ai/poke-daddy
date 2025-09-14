@@ -6,30 +6,32 @@
 //
 
 import ManagedSettings
+import Foundation
 
-// Override the functions below to customize the shield actions used in various situations.
-// The system provides a default response for any functions that your subclass doesn't override.
-// Make sure that your class name matches the NSExtensionPrincipalClass in your Info.plist.
+// Make sure this class name matches the extension principal class in the target's Info.plist.
 class ShieldActionExtension: ShieldActionDelegate {
     override func handle(action: ShieldAction, for application: ApplicationToken, completionHandler: @escaping (ShieldActionResponse) -> Void) {
-        // Handle the action as needed.
         switch action {
         case .primaryButtonPressed:
+            // Write a pending SMS request using the latest attempt logged by the configuration extension.
+            if let attempt = AppGroupBridge.latestAttempt() {
+                AppGroupBridge.setPendingMessageRequest(bundleID: attempt.bundleID, appName: attempt.appName)
+            } else {
+                AppGroupBridge.setPendingMessageRequest(bundleID: "unknown.bundle", appName: nil)
+            }
             completionHandler(.close)
         case .secondaryButtonPressed:
             completionHandler(.defer)
         @unknown default:
-            fatalError()
+            completionHandler(.none)
         }
     }
-    
+
     override func handle(action: ShieldAction, for webDomain: WebDomainToken, completionHandler: @escaping (ShieldActionResponse) -> Void) {
-        // Handle the action as needed.
         completionHandler(.close)
     }
-    
+
     override func handle(action: ShieldAction, for category: ActivityCategoryToken, completionHandler: @escaping (ShieldActionResponse) -> Void) {
-        // Handle the action as needed.
         completionHandler(.close)
     }
 }
