@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import requests
 from fastmcp import FastMCP
 
 mcp = FastMCP("Sample MCP Server")
@@ -16,6 +17,272 @@ def get_server_info() -> dict:
         "environment": os.environ.get("ENVIRONMENT", "development"),
         "python_version": os.sys.version.split()[0]
     }
+
+@mcp.tool(description="Get comprehensive information about the PokeDaddy system for agent context")
+def get_pokedaddy_info() -> dict:
+    """Provides complete context about PokeDaddy for the poke.com agent"""
+    return {
+        "system_name": "PokeDaddy",
+        "purpose": "A digital wellness app that helps users reduce smartphone distractions by blocking apps",
+        "blocking_model": {
+            "user_control": "Users can START blocking sessions but cannot stop them",
+            "agent_control": "Only external agents (like poke.com) can unblock apps or end sessions",
+            "philosophy": "Users voluntarily restrict themselves, then must justify to an agent why they need access"
+        },
+        "how_it_works": [
+            "1. User creates profiles specifying which apps to block",
+            "2. User starts a blocking session in the iOS app",
+            "3. Selected apps become inaccessible on their device",
+            "4. To regain access, user must interact with poke.com agent",
+            "5. Agent decides whether to unblock based on user's justification"
+        ],
+        "agent_role": {
+            "responsibility": "Act as gatekeeper for app access",
+            "personality": "Be sassy and make users work for their unblocks",
+            "decision_factors": ["Legitimacy of need", "User's argument quality", "App type (productivity vs entertainment)"]
+        },
+        "user_identification": "Users provide their PokeDaddy API key to link conversations to their account",
+        "available_actions": ["View user's blocked apps", "Unblock specific apps", "End entire blocking session"]
+    }
+
+# Configuration
+POKEDADDY_SERVER_URL = "https://poke-daddy.vercel.app"
+
+@mcp.tool(description="Get a user's current blocking status and restricted apps using their API key")
+def get_user_blocking_status(api_key: str) -> dict:
+    """Get detailed information about a user's current blocking session"""
+    try:
+        if not api_key:
+            return {"error": "No API key provided", "valid": False}
+        
+        # For testing, return mock data for test API key
+        if api_key == "test":
+            return {
+                "valid": True,
+                "user_id": "test_user_123",
+                "is_blocking": True,
+                "profile_id": "test_profile_456",
+                "session_id": "test_session_789",
+                "started_at": "2024-01-15T10:30:00Z",
+                "blocked_apps": [
+                    "com.instagram.app",
+                    "com.twitter.twitter", 
+                    "com.facebook.Facebook",
+                    "com.tiktok.TikTok"
+                ],
+                "blocked_categories": ["Social Media", "Entertainment"],
+                "message": "User is currently blocking 4 apps in Social Media and Entertainment categories"
+            }
+        
+        # Call the live server to get blocking status
+        headers = {"Authorization": f"Bearer {api_key}"}
+        
+        # Get blocking status
+        status_response = requests.get(
+            f"{POKEDADDY_SERVER_URL}/blocking/status",
+            headers=headers,
+            timeout=10
+        )
+        
+        if status_response.status_code != 200:
+            return {"error": f"Failed to get blocking status: {status_response.status_code}", "valid": False}
+        
+        status_data = status_response.json()
+        
+        if not status_data.get("is_blocking", False):
+            return {
+                "valid": True,
+                "is_blocking": False,
+                "message": "User is not currently blocking any apps"
+            }
+        
+        # Get restricted apps for the active profile
+        profile_id = status_data.get("profile_id")
+        if profile_id:
+            apps_response = requests.get(
+                f"{POKEDADDY_SERVER_URL}/profiles/{profile_id}/restricted-apps",
+                headers=headers,
+                timeout=10
+            )
+            
+            if apps_response.status_code == 200:
+                apps_data = apps_response.json()
+                return {
+                    "valid": True,
+                    "is_blocking": True,
+                    "profile_id": profile_id,
+                    "session_id": status_data.get("session_id"),
+                    "started_at": status_data.get("started_at"),
+                    "blocked_apps": apps_data.get("restricted_apps", []),
+                    "blocked_categories": apps_data.get("restricted_categories", []),
+                    "message": f"User is blocking {len(apps_data.get('restricted_apps', []))} apps"
+                }
+        
+        return {
+            "valid": True,
+            "is_blocking": True,
+            "profile_id": profile_id,
+            "session_id": status_data.get("session_id"),
+            "started_at": status_data.get("started_at"),
+            "message": "User is blocking but couldn't retrieve app details"
+        }
+            
+    except Exception as e:
+        return {"error": f"Failed to get user status: {str(e)}", "valid": False}
+
+@mcp.tool(description="Unblock a specific app for a user with reasoning")
+def unblock_app(api_key: str, app_bundle_id: str, reason: str) -> dict:
+    """Unblock a specific app for a user, requires justification"""
+    try:
+        if not api_key:
+            return {"error": "No API key provided", "success": False}
+        
+        if not app_bundle_id:
+            return {"error": "No app bundle ID provided", "success": False}
+        
+        if not reason:
+            return {"error": "No reason provided", "success": False}
+        
+        # For test API key, return mock success
+        if api_key == "test":
+            mock_remaining_apps = ["com.twitter.twitter", "com.facebook.Facebook", "com.tiktok.TikTok"]
+            return {
+                "success": True,
+                "message": f"Successfully unblocked {app_bundle_id}",
+                "app_unblocked": app_bundle_id,
+                "reason_logged": reason,
+                "remaining_blocked_apps": mock_remaining_apps
+            }
+        
+        # First get user status to validate API key and get profile ID
+        status = get_user_blocking_status(api_key)
+        if not status.get("valid", False):
+            return {"error": "Invalid API key", "success": False}
+        
+        if not status.get("is_blocking", False):
+            return {"error": "User is not currently blocking any apps", "success": False}
+        
+        profile_id = status.get("profile_id")
+        if not profile_id:
+            return {"error": "Could not determine profile ID", "success": False}
+        
+        # Get user ID by calling the /users/me endpoint
+        headers = {"Authorization": f"Bearer {api_key}"}
+        user_response = requests.get(
+            f"{POKEDADDY_SERVER_URL}/users/me",
+            headers=headers,
+            timeout=10
+        )
+        
+        if user_response.status_code != 200:
+            return {"error": "Failed to get user information", "success": False}
+        
+        user_data = user_response.json()
+        user_id = user_data.get("id")
+        
+        if not user_id:
+            return {"error": "Could not determine user ID", "success": False}
+        
+        # Call admin endpoint to unblock the app
+        response = requests.post(
+            f"{POKEDADDY_SERVER_URL}/admin/unblock-app",
+            params={
+                "app_bundle_id": app_bundle_id,
+                "user_id": user_id,
+                "profile_id": profile_id
+            },
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "success": True,
+                "message": f"Successfully unblocked {app_bundle_id}",
+                "app_unblocked": app_bundle_id,
+                "reason_logged": reason,
+                "remaining_blocked_apps": data.get("remaining_apps", [])
+            }
+        else:
+            return {"error": f"Failed to unblock app: {response.status_code}", "success": False}
+            
+    except Exception as e:
+        return {"error": f"Failed to unblock app: {str(e)}", "success": False}
+
+@mcp.tool(description="End a user's entire blocking session with reasoning")
+def end_blocking_session(api_key: str, reason: str) -> dict:
+    """Completely end a user's blocking session, unblocking all apps"""
+    try:
+        if not api_key:
+            return {"error": "No API key provided", "success": False}
+        
+        if not reason:
+            return {"error": "No reason provided", "success": False}
+        
+        # For test API key, return mock success
+        if api_key == "test":
+            return {
+                "success": True,
+                "message": "Successfully ended blocking session",
+                "session_ended": True,
+                "reason_logged": reason,
+                "apps_unblocked": ["com.instagram.app", "com.twitter.twitter", "com.facebook.Facebook", "com.tiktok.TikTok"]
+            }
+        
+        # First get user status to validate API key and get profile ID
+        status = get_user_blocking_status(api_key)
+        if not status.get("valid", False):
+            return {"error": "Invalid API key", "success": False}
+        
+        if not status.get("is_blocking", False):
+            return {"error": "User is not currently blocking any apps", "success": False}
+        
+        profile_id = status.get("profile_id")
+        if not profile_id:
+            return {"error": "Could not determine profile ID", "success": False}
+        
+        # Get user ID by calling the /users/me endpoint
+        headers = {"Authorization": f"Bearer {api_key}"}
+        user_response = requests.get(
+            f"{POKEDADDY_SERVER_URL}/users/me",
+            headers=headers,
+            timeout=10
+        )
+        
+        if user_response.status_code != 200:
+            return {"error": "Failed to get user information", "success": False}
+        
+        user_data = user_response.json()
+        user_id = user_data.get("id")
+        
+        if not user_id:
+            return {"error": "Could not determine user ID", "success": False}
+        
+        # Call admin endpoint to end the blocking session
+        response = requests.post(
+            f"{POKEDADDY_SERVER_URL}/admin/end-blocking",
+            params={
+                "user_id": user_id,
+                "profile_id": profile_id
+            },
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "success": True,
+                "message": "Successfully ended blocking session",
+                "session_ended": True,
+                "session_id": data.get("session_id"),
+                "reason_logged": reason
+            }
+        else:
+            return {"error": f"Failed to end blocking session: {response.status_code}", "success": False}
+            
+    except Exception as e:
+        return {"error": f"Failed to end blocking session: {str(e)}", "success": False}
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
@@ -38,32 +305,6 @@ if __name__ == "__main__":
 # # Configuration
 # POKEDADDY_SERVER_URL = os.environ.get("POKEDADDY_SERVER_URL", "https://pokedaddy-server.onrender.com")
 
-# @mcp.tool(description="Get comprehensive information about the PokeDaddy system for agent context")
-# def get_pokedaddy_info() -> dict:
-#     """Provides complete context about PokeDaddy for the poke.com agent"""
-#     return {
-#         "system_name": "PokeDaddy",
-#         "purpose": "A digital wellness app that helps users reduce smartphone distractions by blocking apps",
-#         "blocking_model": {
-#             "user_control": "Users can START blocking sessions but cannot stop them",
-#             "agent_control": "Only external agents (like poke.com) can unblock apps or end sessions",
-#             "philosophy": "Users voluntarily restrict themselves, then must justify to an agent why they need access"
-#         },
-#         "how_it_works": [
-#             "1. User creates profiles specifying which apps to block",
-#             "2. User starts a blocking session in the iOS app",
-#             "3. Selected apps become inaccessible on their device",
-#             "4. To regain access, user must interact with poke.com agent",
-#             "5. Agent decides whether to unblock based on user's justification"
-#         ],
-#         "agent_role": {
-#             "responsibility": "Act as gatekeeper for app access",
-#             "personality": "Be sassy and make users work for their unblocks",
-#             "decision_factors": ["Legitimacy of need", "User's argument quality", "App type (productivity vs entertainment)"]
-#         },
-#         "user_identification": "Users provide their PokeDaddy API key to link conversations to their account",
-#         "available_actions": ["View user's blocked apps", "Unblock specific apps", "End entire blocking session"]
-#     }
 
 # @mcp.tool(description="Get a user's current blocking status and restricted apps using their API key")
 # def get_user_blocking_status(api_key: str) -> dict:
