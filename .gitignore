@@ -35,3 +35,4 @@ pokedaddy-server/pokedaddy.db
 # Node (just in case)
 node_modules/
 
+.vercel

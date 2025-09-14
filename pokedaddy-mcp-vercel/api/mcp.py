@@ -4,24 +4,25 @@ import requests
 import json
 from http.server import BaseHTTPRequestHandler
 
-# Configuration
+# Configuration - points to your main PokeDaddy API
 POKEDADDY_SERVER_URL = os.environ.get("POKEDADDY_SERVER_URL", "https://poke-daddy.vercel.app")
 
-def greet(name: str = "") -> str:
-    return f"Hello, {name}! Welcome to PokeDaddy MCP server!"
+def health() -> dict:
+    return {"status": "ok", "api_target": POKEDADDY_SERVER_URL}
 
 def get_server_info() -> dict:
     return {
         "server_name": "PokeDaddy MCP Server",
         "version": "1.0.0",
-        "environment": os.environ.get("ENVIRONMENT", "development"),
+        "environment": "production",
+        "api_target": POKEDADDY_SERVER_URL,
         "python_version": "3.9"
     }
 
 def get_mcp_config() -> dict:
     return {
         "pokedaddy_server_url": POKEDADDY_SERVER_URL,
-        "environment": os.environ.get("ENVIRONMENT", "development")
+        "environment": "production"
     }
 
 def get_user_blocking_status(user_email: str = "", email: str = "") -> dict:
@@ -39,28 +40,6 @@ def get_user_blocking_status(user_email: str = "", email: str = "") -> dict:
     except Exception as e:
         print(f"[MCP] get_user_blocking_status error: {e}")
         return {"error": str(e), "valid": False}
-
-def unblock_app(user_email: str = "", email: str = "", app_bundle_id: str = "", appBundleId: str = "", reason: str = "") -> dict:
-    """Calls /admin/unblock-app-by-email on the server to remove the app from the user's restricted list."""
-    try:
-        user_email = user_email or email
-        if not user_email:
-            return {"error": "No user email provided", "success": False}
-        app_bundle_id = app_bundle_id or appBundleId
-        if not app_bundle_id:
-            return {"error": "No app bundle ID provided", "success": False}
-
-        response = requests.post(f"{POKEDADDY_SERVER_URL}/admin/unblock-app-by-email",
-                               params={"email": user_email, "app_bundle_id": app_bundle_id}, timeout=25)
-        print(f"[MCP] POST {response.url} response: {response.status_code}")
-        response.raise_for_status()
-        result = response.json()
-        result["success"] = True
-        result["reason"] = reason
-        return result
-    except Exception as e:
-        print(f"[MCP] unblock_app error: {e}")
-        return {"error": str(e), "success": False}
 
 def end_blocking_session(user_email: str = "", email: str = "", reason: str = "") -> dict:
     """Calls /admin/end-blocking-by-email to end the user's blocking session."""
@@ -80,6 +59,28 @@ def end_blocking_session(user_email: str = "", email: str = "", reason: str = ""
         return result
     except Exception as e:
         print(f"[MCP] end_blocking_session error: {e}")
+        return {"error": str(e), "success": False}
+
+def unblock_app(user_email: str = "", email: str = "", app_bundle_id: str = "", appBundleId: str = "", reason: str = "") -> dict:
+    """Calls /admin/unblock-app-by-email on the server to remove the app from the user's restricted list."""
+    try:
+        user_email = user_email or email
+        app_bundle_id = app_bundle_id or appBundleId
+        if not user_email:
+            return {"error": "No user email provided", "success": False}
+        if not app_bundle_id:
+            return {"error": "No app bundle ID provided", "success": False}
+
+        response = requests.post(f"{POKEDADDY_SERVER_URL}/admin/unblock-app-by-email",
+                               params={"email": user_email, "app_bundle_id": app_bundle_id}, timeout=25)
+        print(f"[MCP] POST {response.url} response: {response.status_code}")
+        response.raise_for_status()
+        result = response.json()
+        result["success"] = True
+        result["reason"] = reason
+        return result
+    except Exception as e:
+        print(f"[MCP] unblock_app error: {e}")
         return {"error": str(e), "success": False}
 
 def start_blocking_session(user_email: str = "", email: str = "", profile_id: str = "", profileId: str = "", profile_name: str = "", profileName: str = "") -> dict:
@@ -108,9 +109,6 @@ def start_blocking_session(user_email: str = "", email: str = "", profile_id: st
         print(f"[MCP] start_blocking_session error: {e}")
         return {"error": str(e), "success": False}
 
-def health() -> dict:
-    return {"status": "ok"}
-
 # Tool aliases
 def getserverinfo() -> dict:
     return get_server_info()
@@ -127,58 +125,91 @@ def startblockingsession(email: str = "", user_email: str = "", profile_id: str 
 def unblockapp(email: str = "", user_email: str = "", app_bundle_id: str = "", appBundleId: str = "", reason: str = "") -> dict:
     return unblock_app(user_email=user_email or email, app_bundle_id=app_bundle_id or appBundleId, reason=reason)
 
-# Vercel handler class
+# Tool function mapping
+TOOLS = {
+    "health": health,
+    "get_server_info": get_server_info,
+    "getserverinfo": get_server_info,
+    "get_mcp_config": get_mcp_config,
+    "get_user_blocking_status": get_user_blocking_status,
+    "getuserblocking_status": get_user_blocking_status,
+    "end_blocking_session": end_blocking_session,
+    "endblockingsession": end_blocking_session,
+    "unblock_app": unblock_app,
+    "unblockapp": unblock_app,
+    "start_blocking_session": start_blocking_session,
+    "startblockingsession": start_blocking_session,
+}
+
+TOOL_DESCRIPTIONS = [
+    {"name": "health", "description": "Health check for MCP server"},
+    {"name": "get_server_info", "description": "Get server information"},
+    {"name": "getserverinfo", "description": "Alias of get_server_info"},
+    {"name": "get_mcp_config", "description": "Get MCP configuration"},
+    {"name": "get_user_blocking_status", "description": "Get user blocking status by email"},
+    {"name": "getuserblocking_status", "description": "Alias of get_user_blocking_status"},
+    {"name": "end_blocking_session", "description": "End user blocking session"},
+    {"name": "endblockingsession", "description": "Alias of end_blocking_session"},
+    {"name": "unblock_app", "description": "Unblock specific app"},
+    {"name": "unblockapp", "description": "Alias of unblock_app"},
+    {"name": "start_blocking_session", "description": "Start blocking session"},
+    {"name": "startblockingsession", "description": "Alias of start_blocking_session"},
+]
+
 class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        # Simple health check that shows MCP server is ready
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.end_headers()
+
+        # Return MCP-style response similar to what Render server returns
+        response = {
+            "jsonrpc": "2.0",
+            "error": {
+                "code": -32600,
+                "message": "Invalid Request - use POST with proper MCP protocol"
+            }
+        }
+        self.wfile.write(json.dumps(response).encode())
+
+    def do_OPTIONS(self):
+        # Handle preflight CORS requests
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.end_headers()
+
     def do_POST(self):
         try:
             # Read request body
-            content_length = int(self.headers['Content-Length'])
-            body = self.rfile.read(content_length)
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+
+            # Handle empty body
+            if not body.strip():
+                body = '{}'
+
             body_json = json.loads(body)
 
-            mcp_method = body_json.get('method', '')
+            method = body_json.get('method', '')
 
-            if mcp_method == 'tools/list':
+            if method == 'tools/list':
                 response = {
                     "jsonrpc": "2.0",
                     "id": body_json.get("id"),
-                    "result": {
-                        "tools": [
-                            {"name": "health", "description": "Health check for MCP server"},
-                            {"name": "get_server_info", "description": "Get server information"},
-                            {"name": "get_mcp_config", "description": "Get MCP configuration"},
-                            {"name": "get_user_blocking_status", "description": "Get user blocking status by email"},
-                            {"name": "end_blocking_session", "description": "End user blocking session"},
-                            {"name": "unblock_app", "description": "Unblock specific app"},
-                            {"name": "start_blocking_session", "description": "Start blocking session"},
-                            {"name": "getserverinfo", "description": "Alias of get_server_info"},
-                            {"name": "getuserblocking_status", "description": "Alias of get_user_blocking_status"},
-                            {"name": "endblockingsession", "description": "Alias of end_blocking_session"}
-                        ]
-                    }
+                    "result": {"tools": TOOL_DESCRIPTIONS}
                 }
-            elif mcp_method == 'tools/call':
+            elif method == 'tools/call':
                 tool_name = body_json.get('params', {}).get('name', '')
                 args = body_json.get('params', {}).get('arguments', {})
 
-                # Map tool calls to functions
-                tool_map = {
-                    'health': health,
-                    'get_server_info': get_server_info,
-                    'getserverinfo': get_server_info,
-                    'get_mcp_config': get_mcp_config,
-                    'get_user_blocking_status': lambda **kwargs: get_user_blocking_status(**kwargs),
-                    'getuserblocking_status': lambda **kwargs: get_user_blocking_status(**kwargs),
-                    'end_blocking_session': lambda **kwargs: end_blocking_session(**kwargs),
-                    'endblockingsession': lambda **kwargs: end_blocking_session(**kwargs),
-                    'unblock_app': lambda **kwargs: unblock_app(**kwargs),
-                    'unblockapp': lambda **kwargs: unblock_app(**kwargs),
-                    'start_blocking_session': lambda **kwargs: start_blocking_session(**kwargs),
-                    'startblockingsession': lambda **kwargs: start_blocking_session(**kwargs),
-                }
-
-                if tool_name in tool_map:
-                    result = tool_map[tool_name](**args)
+                if tool_name in TOOLS:
+                    result = TOOLS[tool_name](**args)
                 else:
                     result = {"error": f"Unknown tool: {tool_name}"}
 
@@ -190,8 +221,15 @@ class handler(BaseHTTPRequestHandler):
             else:
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                error_response = {"error": f"Invalid MCP method: {mcp_method}"}
+                error_response = {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32600,
+                        "message": f"Invalid MCP method: {method}"
+                    }
+                }
                 self.wfile.write(json.dumps(error_response).encode())
                 return
 
@@ -206,15 +244,13 @@ class handler(BaseHTTPRequestHandler):
             print(f"[MCP] Handler error: {e}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            error_response = {"error": str(e)}
+            error_response = {
+                "jsonrpc": "2.0",
+                "error": {
+                    "code": -32603,
+                    "message": f"Internal error: {str(e)}"
+                }
+            }
             self.wfile.write(json.dumps(error_response).encode())
-
-    def do_GET(self):
-        # Simple health check for GET requests
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        response = {"status": "MCP Server OK", "version": "1.0.0"}
-        self.wfile.write(json.dumps(response).encode())
