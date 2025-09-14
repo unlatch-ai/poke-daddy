@@ -52,9 +52,28 @@ enum MessageFactory {
     static let coachNumber = "+16504447507" // Poke's number
 
     static func draftForBlockedApp(bundleID: String, appName: String?) -> MessageDraft {
-        let name = appName ?? bundleID
-        let body = "Hi Poke, please unblock \(name) (\(bundleID)) for me. I’d like to request access."
+        // Normalize inputs
+        let normalizedName = appName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let isNameUsable = {
+            guard let n = normalizedName, !n.isEmpty else { return false }
+            // Guard against placeholders accidentally saved as a name
+            let lowered = n.lowercased()
+            return lowered != "unknown.bundle" && lowered != "uknown.bundle"
+        }()
+        let isBundleUseful = {
+            let lowered = bundleID.lowercased()
+            return !lowered.isEmpty && lowered != "unknown.bundle" && lowered != "uknown.bundle"
+        }()
+
+        let body: String
+        if isNameUsable {
+            body = "Hi Poke, please unblock \(normalizedName!) for me. I’d like to request access."
+        } else if isBundleUseful {
+            body = "Hi Poke, please unblock \(bundleID) for me. I’d like to request access."
+        } else {
+            body = "Hi Poke, I’d like to request access right now."
+        }
+
         return MessageDraft(recipients: [coachNumber], body: body)
     }
 }
-

@@ -95,6 +95,7 @@ struct PokeDaddyView: View {
     
     private func checkForPendingMessage() {
         if let pending = AppGroupBridge.consumePendingMessageRequest() {
+            NSLog("[PokeDaddyApp] presenting SMS for bundleID=%@ name=%@", pending.bundleID, pending.appName ?? "nil")
             pendingDraft = MessageFactory.draftForBlockedApp(bundleID: pending.bundleID, appName: pending.appName)
         }
     }

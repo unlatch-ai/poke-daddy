@@ -13,10 +13,17 @@ class ShieldActionExtension: ShieldActionDelegate {
     override func handle(action: ShieldAction, for application: ApplicationToken, completionHandler: @escaping (ShieldActionResponse) -> Void) {
         switch action {
         case .primaryButtonPressed:
-            // Write a pending SMS request using the latest attempt logged by the configuration extension.
-            if let attempt = AppGroupBridge.latestAttempt() {
+            NSLog("[ShieldAction] primary tapped (application token)")
+            // Read the current context (set by the configuration extension) to get bundle ID + name.
+            let ctx = AppGroupBridge.currentShieldContext()
+            if let b = ctx.bundleID, !b.isEmpty {
+                // Prefer the name from context; if missing, try the latest stored name for this bundle.
+                let name = (ctx.appName?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? AppGroupBridge.latestName(forBundleID: b)
+                AppGroupBridge.setPendingMessageRequest(bundleID: b, appName: name)
+            } else if let attempt = AppGroupBridge.latestAttempt() {
                 AppGroupBridge.setPendingMessageRequest(bundleID: attempt.bundleID, appName: attempt.appName)
             } else {
+                // As a last resort, trigger a generic draft; the composer hides this placeholder.
                 AppGroupBridge.setPendingMessageRequest(bundleID: "unknown.bundle", appName: nil)
             }
             completionHandler(.close)
@@ -28,11 +35,37 @@ class ShieldActionExtension: ShieldActionDelegate {
     }
 
     override func handle(action: ShieldAction, for webDomain: WebDomainToken, completionHandler: @escaping (ShieldActionResponse) -> Void) {
-        completionHandler(.close)
+        switch action {
+        case .primaryButtonPressed:
+            NSLog("[ShieldAction] primary tapped (webDomain token)")
+            let ctx = AppGroupBridge.currentShieldContext()
+            if let b = ctx.bundleID, !b.isEmpty {
+                let name = (ctx.appName?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
+                AppGroupBridge.setPendingMessageRequest(bundleID: b, appName: name)
+            }
+            completionHandler(.close)
+        case .secondaryButtonPressed:
+            completionHandler(.defer)
+        @unknown default:
+            completionHandler(.none)
+        }
     }
 
     override func handle(action: ShieldAction, for category: ActivityCategoryToken, completionHandler: @escaping (ShieldActionResponse) -> Void) {
-        completionHandler(.close)
+        switch action {
+        case .primaryButtonPressed:
+            NSLog("[ShieldAction] primary tapped (category token)")
+            let ctx = AppGroupBridge.currentShieldContext()
+            if let b = ctx.bundleID, !b.isEmpty {
+                let name = (ctx.appName?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
+                AppGroupBridge.setPendingMessageRequest(bundleID: b, appName: name)
+            }
+            completionHandler(.close)
+        case .secondaryButtonPressed:
+            completionHandler(.defer)
+        @unknown default:
+            completionHandler(.none)
+        }
     }
 
     // Note: Shield action extensions cannot programmatically foreground the container app

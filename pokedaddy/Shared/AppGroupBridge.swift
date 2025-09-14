@@ -18,6 +18,8 @@ enum AppGroupBridge {
         static let pendingMessageBundleID = "pending_message_bundle_id"
         static let pendingMessageAppName = "pending_message_app_name"
         static let lastAttempts = "shield_attempts"
+        static let contextBundleID = "current_context_bundle_id"
+        static let contextAppName = "current_context_app_name"
     }
 
     struct BlockAttempt: Codable {
@@ -35,7 +37,10 @@ enum AppGroupBridge {
 
     static func fetchAttempts(max: Int = 100) -> [BlockAttempt] {
         guard let data = defaults?.data(forKey: Keys.lastAttempts) else { return [] }
-        return (try? JSONDecoder().decode([BlockAttempt].self, from: data))?.suffix(max) ?? []
+        if let decoded = try? JSONDecoder().decode([BlockAttempt].self, from: data) {
+            return Array(decoded.suffix(max))
+        }
+        return []
     }
 
     private static func saveAttempts<S: Sequence>(_ attempts: S) where S.Element == BlockAttempt {
@@ -47,8 +52,34 @@ enum AppGroupBridge {
         fetchAttempts().last
     }
 
+    /// Returns the most recently seen non-empty app name for a given bundle ID.
+    static func latestName(forBundleID bundleID: String) -> String? {
+        let attempts = fetchAttempts()
+        for attempt in attempts.reversed() {
+            if attempt.bundleID == bundleID, let name = attempt.appName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty {
+                return name
+            }
+        }
+        return nil
+    }
+
+    // MARK: - Current Shield Context (last displayed sheet)
+    static func setCurrentShieldContext(bundleID: String?, appName: String?) {
+        if let b = bundleID { defaults?.set(b, forKey: Keys.contextBundleID) }
+        if let n = appName { defaults?.set(n, forKey: Keys.contextAppName) }
+        defaults?.synchronize()
+        NSLog("[AppGroupBridge] setCurrentShieldContext bundleID=%@ name=%@", bundleID ?? "nil", appName ?? "nil")
+    }
+
+    static func currentShieldContext() -> (bundleID: String?, appName: String?) {
+        let b = defaults?.string(forKey: Keys.contextBundleID)
+        let n = defaults?.string(forKey: Keys.contextAppName)
+        return (b, n)
+    }
+
     // MARK: - Pending Message Request
     static func setPendingMessageRequest(bundleID: String, appName: String?) {
+        NSLog("[AppGroupBridge] setPendingMessageRequest bundleID=%@ name=%@", bundleID, appName ?? "nil")
         defaults?.set(true, forKey: Keys.pendingMessage)
         defaults?.set(bundleID, forKey: Keys.pendingMessageBundleID)
         defaults?.set(appName, forKey: Keys.pendingMessageAppName)
@@ -64,6 +95,7 @@ enum AppGroupBridge {
         defaults?.removeObject(forKey: Keys.pendingMessageBundleID)
         defaults?.removeObject(forKey: Keys.pendingMessageAppName)
         defaults?.synchronize()
+        NSLog("[AppGroupBridge] consumePendingMessageRequest bundleID=%@ name=%@", bundleID, appName ?? "nil")
         return bundleID.isEmpty ? nil : (bundleID, appName)
     }
 }

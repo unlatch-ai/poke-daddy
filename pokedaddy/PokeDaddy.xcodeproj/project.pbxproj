@@ -29,7 +29,7 @@
 		F5A3B0AA2C94E3400BD6C7F /* AuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B0A92C94E3400BD6C7F /* AuthenticationManager.swift */; };
 		F5A3B0AC2C94E3500BD6C7F /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B0AB2C94E3500BD6C7F /* LoginView.swift */; };
 		F5A3B0AE2C94E3600BD6C7F /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A3B0AD2C94E3600BD6C7F /* APIService.swift */; };
-\t\tF5A3B0F22C99AAAA00BD6C7F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F5A3B0F12C99AAAA00BD6C7F /* LaunchScreen.storyboard */; };
+        F5A3B0F22C99AAAA00BD6C7F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F5A3B0F12C99AAAA00BD6C7F /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,7 +87,7 @@
 		F5A3B0A92C94E3400BD6C7F /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
 		F5A3B0AB2C94E3500BD6C7F /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		F5A3B0AD2C94E3600BD6C7F /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
-\t\tF5A3B0F12C99AAAA00BD6C7F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+        F5A3B0F12C99AAAA00BD6C7F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -194,7 +194,7 @@
 			isa = PBXGroup;
 			children = (
 				F51C38D52C775AAF003B4EB3 /* Info.plist */,
-\t\t\t\tF5A3B0F12C99AAAA00BD6C7F /* LaunchScreen.storyboard */,
+                F5A3B0F12C99AAAA00BD6C7F /* LaunchScreen.storyboard */,
 				F5A3B06C2C733EA200BD6C7F /* PokeDaddy.entitlements */,
 				F51C38E02C77DADA003B4EB3 /* ProfileManager.swift */,
 				F51C38E72C78ADB5003B4EB3 /* ProfilePicker.swift */,
@@ -353,7 +353,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-\t\t\t\tF5A3B0F22C99AAAA00BD6C7F /* LaunchScreen.storyboard in Resources */,
+                F5A3B0F22C99AAAA00BD6C7F /* LaunchScreen.storyboard in Resources */,
 				F5A3B0662C733E3500BD6C7F /* Preview Assets.xcassets in Resources */,
 				F5A3B0632C733E3500BD6C7F /* Assets.xcassets in Resources */,
 			);

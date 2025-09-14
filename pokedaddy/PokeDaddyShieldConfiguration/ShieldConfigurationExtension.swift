@@ -16,8 +16,10 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     override func configuration(shielding application: Application) -> ShieldConfiguration {
         let bundleID = application.bundleIdentifier ?? "unknown.bundle"
         let appName = application.localizedDisplayName
-        // Log attempt for the action extension to read later
+        // Log attempt and set current shield context for the action extension.
         AppGroupBridge.appendAttempt(bundleID: bundleID, appName: appName)
+        AppGroupBridge.setCurrentShieldContext(bundleID: bundleID, appName: appName)
+        NSLog("[ShieldConfig] application sheet for %@ name=%@", bundleID, appName ?? "nil")
 
         return ShieldConfiguration(
             backgroundBlurStyle: .systemThickMaterial,
@@ -32,12 +34,18 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     }
 
     override func configuration(shielding application: Application, in category: ActivityCategory) -> ShieldConfiguration {
-        ShieldConfiguration(
+        let bundleID = application.bundleIdentifier ?? "unknown.bundle"
+        let appName = application.localizedDisplayName
+        AppGroupBridge.appendAttempt(bundleID: bundleID, appName: appName)
+        AppGroupBridge.setCurrentShieldContext(bundleID: bundleID, appName: appName)
+        NSLog("[ShieldConfig] application+category sheet for %@ name=%@", bundleID, appName ?? "nil")
+
+        return ShieldConfiguration(
             backgroundBlurStyle: .systemThickMaterial,
             backgroundColor: .systemBackground,
             icon: UIImage(systemName: "hand.raised.fill"),
             title: ShieldConfiguration.Label(text: "Blocked by PokeDaddy", color: .label),
-            subtitle: ShieldConfiguration.Label(text: "Category restricted — open PokeDaddy to request", color: .secondaryLabel),
+            subtitle: ShieldConfiguration.Label(text: "\(appName ?? bundleID) — tap ‘Debate Poke’, then open PokeDaddy", color: .secondaryLabel),
             primaryButtonLabel: ShieldConfiguration.Label(text: "Debate Poke", color: .white),
             primaryButtonBackgroundColor: .systemBlue,
             secondaryButtonLabel: ShieldConfiguration.Label(text: "Cancel", color: .secondaryLabel)
@@ -45,12 +53,15 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     }
 
     override func configuration(shielding webDomain: WebDomain) -> ShieldConfiguration {
-        ShieldConfiguration(
+        let host = webDomain.domain ?? "this site"
+        AppGroupBridge.setCurrentShieldContext(bundleID: host, appName: host)
+        NSLog("[ShieldConfig] webDomain sheet for host=%@", host)
+        return ShieldConfiguration(
             backgroundBlurStyle: .systemThickMaterial,
             backgroundColor: .systemBackground,
             icon: UIImage(systemName: "hand.raised.fill"),
             title: ShieldConfiguration.Label(text: "Blocked by PokeDaddy", color: .label),
-            subtitle: ShieldConfiguration.Label(text: "This site is restricted", color: .secondaryLabel),
+            subtitle: ShieldConfiguration.Label(text: "\(host) — tap ‘Debate Poke’, then open PokeDaddy", color: .secondaryLabel),
             primaryButtonLabel: ShieldConfiguration.Label(text: "Debate Poke", color: .white),
             primaryButtonBackgroundColor: .systemBlue,
             secondaryButtonLabel: ShieldConfiguration.Label(text: "Cancel", color: .secondaryLabel)
