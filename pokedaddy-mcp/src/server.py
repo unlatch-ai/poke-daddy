@@ -1,35 +1,8 @@
 #!/usr/bin/env python3
 import os
 from fastmcp import FastMCP
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Response
 
 mcp = FastMCP("PokeDaddy MCP Server")
-
-# Add CORS middleware to handle cross-origin requests and SSE headers
-mcp.app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*", "Accept", "Content-Type", "Cache-Control"],
-    expose_headers=["*"],
-)
-
-# Add middleware to handle SSE content-type requirements
-@mcp.app.middleware("http")
-async def add_sse_headers(request, call_next):
-    response = await call_next(request)
-    
-    # For MCP endpoints, ensure proper SSE headers
-    if request.url.path.startswith("/mcp"):
-        response.headers["Content-Type"] = "text/event-stream"
-        response.headers["Cache-Control"] = "no-cache"
-        response.headers["Connection"] = "keep-alive"
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Headers"] = "Accept, Content-Type, Cache-Control"
-    
-    return response
 
 @mcp.tool(description="Greet a user by name with a welcome message from the PokeDaddy MCP server")
 def greet(name: str) -> str:
