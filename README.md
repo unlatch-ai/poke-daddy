@@ -1,12 +1,12 @@
 # 🎯 PokeDaddy
 
-*An AI-powered digital wellness companion that puts you back in control of your screen time.*
+*Making Poke the accountability partner that puts you back in control of your screen time.*
 
 **Built for the Poke Hackathon 2024** by Kevin Fang and Olsen Budanur.
 
 ## 🌟 What is PokeDaddy?
 
-PokeDaddy is a revolutionary iOS app that tackles smartphone addiction through intelligent intervention. Unlike traditional screen time apps that you can easily bypass, PokeDaddy creates a **one-way blocking system** where only an AI agent can grant you access to restricted apps.
+PokeDaddy is a iOS app in the style of similar app blockers like Opal or OneSec that tackles smartphone addiction through using Screen Time in iOS Family Controls. Unlike traditional screen time apps that you can easily bypass, PokeDaddy creates a one-way blocking system where only an AI agent can grant you access to restricted apps.
 
 ### How it works:
 1. **You start a blocking session** - Choose which apps to restrict and hit the big red button
