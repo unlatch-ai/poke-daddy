@@ -3,11 +3,30 @@ import os
 import requests
 from typing import Dict, List, Optional
 from fastmcp import FastMCP
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 mcp = FastMCP("PokeDaddy MCP Server")
+app = FastAPI(title="PokeDaddy API", version="1.0.0")
 
 # Configuration
 POKEDADDY_SERVER_URL = os.environ.get("POKEDADDY_SERVER_URL", "https://pokedaddy-server.onrender.com")
+
+# Pydantic models for HTTP API
+class BlockingStatusRequest(BaseModel):
+    api_key: str
+
+class UnblockAppRequest(BaseModel):
+    api_key: str
+    app_bundle_id: str
+    reason: str
+
+class EndSessionRequest(BaseModel):
+    api_key: str
+    reason: str
+
+class AppInfoRequest(BaseModel):
+    app_bundle_id: str
 
 @mcp.tool(description="Get comprehensive information about the PokeDaddy system for agent context")
 def get_pokedaddy_info() -> dict:
@@ -312,14 +331,58 @@ def check_blocking_server() -> dict:
             "server_url": POKEDADDY_SERVER_URL
         }
 
+# HTTP API endpoints for poke.com integration
+@app.get("/")
+async def root():
+    return {"message": "PokeDaddy MCP Server API", "version": "1.0.0", "status": "running"}
+
+@app.get("/pokedaddy-info")
+async def http_get_pokedaddy_info():
+    """HTTP endpoint for PokeDaddy system information"""
+    return get_pokedaddy_info()
+
+@app.post("/user-status")
+async def http_get_user_blocking_status(request: BlockingStatusRequest):
+    """HTTP endpoint to get user blocking status"""
+    try:
+        result = get_user_blocking_status(request.api_key)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result.get("error", "Invalid request"))
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+
+@app.post("/unblock-app")
+async def http_unblock_app(request: UnblockAppRequest):
+    """HTTP endpoint to unblock a specific app"""
+    result = unblock_app(request.api_key, request.app_bundle_id, request.reason)
+    if not result.get("success", False):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to unblock app"))
+    return result
+
+@app.post("/end-session")
+async def http_end_blocking_session(request: EndSessionRequest):
+    """HTTP endpoint to end blocking session"""
+    result = end_blocking_session(request.api_key, request.reason)
+    if not result.get("success", False):
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to end session"))
+    return result
+
+@app.get("/app-info/{app_bundle_id}")
+async def http_get_app_info(app_bundle_id: str):
+    """HTTP endpoint to get app information"""
+    return get_app_info(app_bundle_id)
+
 if __name__ == "__main__":
+    import uvicorn
+    import threading
+    import time
+    
     port = int(os.environ.get("PORT", 8000))
     host = "0.0.0.0"
     
-    print(f"Starting PokeDaddy FastMCP server on {host}:{port}")
+    print(f"Starting PokeDaddy server with both MCP and HTTP API on {host}:{port}")
     
-    mcp.run(
-        transport="http",
-        host=host,
-        port=port
-    )
+    # For Render deployment, we'll run just the HTTP API since that's what poke.com needs
+    # The MCP tools are available but we expose them via HTTP endpoints
+    uvicorn.run(app, host=host, port=port)
