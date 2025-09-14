@@ -5,7 +5,6 @@
 //  Created by Oz Tamir on 22/08/2024.
 //
 import SwiftUI
-import SFSymbolsPicker
 import FamilyControls
 import ManagedSettings
 
@@ -13,6 +12,7 @@ struct PokeDaddyView: View {
     @EnvironmentObject private var appBlocker: AppBlocker
     @EnvironmentObject private var profileManager: ProfileManager
     @EnvironmentObject private var authManager: AuthenticationManager
+    @State private var pendingDraft: MessageDraft?
     
     private var isBlocking : Bool {
         get {
@@ -43,6 +43,15 @@ struct PokeDaddyView: View {
             )
         }
         .animation(.spring(), value: isBlocking)
+        .onAppear(perform: checkForPendingMessage)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            checkForPendingMessage()
+        }
+        .sheet(item: $pendingDraft) { draft in
+            MessageComposerView(draft: draft) {
+                // finished composing; nothing else to do
+            }
+        }
     }
     
     @ViewBuilder
@@ -74,15 +83,11 @@ struct PokeDaddyView: View {
         // Only allow starting blocking, not stopping
         if !isBlocking {
             NSLog("Starting block")
-            // Use server-based blocking if we have a server profile, otherwise use local
-            if let serverProfileId = profileManager.currentServerProfileId {
-                appBlocker.startServerBlocking(profileId: serverProfileId)
-            } else {
-                appBlocker.startBlocking(for: profileManager.currentProfile)
-            }
+            // MVP: always use local blocking (server integration handled later)
+            appBlocker.startBlocking(for: profileManager.currentProfile)
         }
     }
-    
+
     private var signOutButton: some View {
         Button("Sign Out") {
             if !isBlocking {
@@ -91,6 +96,12 @@ struct PokeDaddyView: View {
         }
         .foregroundColor(isBlocking ? .gray : .red)
         .disabled(isBlocking)
+    }
+    
+    private func checkForPendingMessage() {
+        if let pending = AppGroupBridge.consumePendingMessageRequest() {
+            pendingDraft = MessageFactory.draftForBlockedApp(bundleID: pending.bundleID, appName: pending.appName)
+        }
     }
     
 }

@@ -76,7 +76,7 @@ struct ProfileFormView: View {
                             Text("\(activitySelection.categoryTokens.count)")
                                 .fontWeight(.bold)
                         }
-                        Text("Broke can't list the names of the apps due to privacy concerns, it is only able to see the amount of apps selected in the configuration screen.")
+                        Text("iOS cannot list app names due to privacy; only counts are shown.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
