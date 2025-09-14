@@ -20,5 +20,16 @@
 	<string>Used to scan and program NFC tags for PokeDaddy features.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.olsenbudanur.pokedaddy</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>pokedaddy</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

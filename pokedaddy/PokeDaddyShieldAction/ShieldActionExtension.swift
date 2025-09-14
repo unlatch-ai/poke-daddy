@@ -34,4 +34,8 @@ class ShieldActionExtension: ShieldActionDelegate {
     override func handle(action: ShieldAction, for category: ActivityCategoryToken, completionHandler: @escaping (ShieldActionResponse) -> Void) {
         completionHandler(.close)
     }
+
+    // Note: Shield action extensions cannot programmatically foreground the container app
+    // or present UI. The main app will present the SMS composer when it becomes active
+    // by reading the pending request from the App Group.
 }

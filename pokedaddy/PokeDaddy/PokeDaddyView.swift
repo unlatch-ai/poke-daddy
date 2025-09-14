@@ -22,25 +22,19 @@ struct PokeDaddyView: View {
     
     var body: some View {
         NavigationView {
-            GeometryReader { geometry in
-                ZStack {
-                    VStack(spacing: 0) {
-                        blockOrUnblockButton(geometry: geometry)
-                        
-                        if !isBlocking {
-                            Divider()
-                            
-                            ProfilesPicker(profileManager: profileManager)
-                                .frame(height: geometry.size.height / 2)
-                                .transition(.move(edge: .bottom))
-                        }
-                    }
-                    .background(isBlocking ? Color("BlockingBackground") : Color("NonBlockingBackground"))
+            VStack(spacing: 0) {
+                blockOrUnblockSection
+
+                if !isBlocking {
+                    Divider()
+                    ProfilesPicker(profileManager: profileManager)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.move(edge: .bottom))
                 }
             }
-            .navigationBarItems(
-                leading: signOutButton
-            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(isBlocking ? Color("BlockingBackground") : Color("NonBlockingBackground"))
+            .navigationBarItems(leading: signOutButton)
         }
         .animation(.spring(), value: isBlocking)
         .onAppear(perform: checkForPendingMessage)
@@ -52,30 +46,31 @@ struct PokeDaddyView: View {
                 // finished composing; nothing else to do
             }
         }
+        .ignoresSafeArea(.keyboard) // avoid layout shrink/cutoff when keyboard shows
     }
     
     @ViewBuilder
-    private func blockOrUnblockButton(geometry: GeometryProxy) -> some View {
+    private var blockOrUnblockSection: some View {
         VStack(spacing: 8) {
             Text(isBlocking ? "Apps are blocked - Server must unblock" : "Tap to start blocking")
                 .font(.caption)
                 .opacity(0.75)
                 .transition(.scale)
-            
+
             Button(action: {
-                withAnimation(.spring()) {
-                    toggleBlocking()
-                }
+                withAnimation(.spring()) { toggleBlocking() }
             }) {
                 Image(isBlocking ? "RedIcon" : "GreenIcon")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(height: geometry.size.height / 3)
+                    .frame(maxHeight: 280)
+                    .frame(maxWidth: .infinity)
             }
             .transition(.scale)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .frame(height: isBlocking ? geometry.size.height : geometry.size.height / 2)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .frame(maxHeight: isBlocking ? .infinity : nil, alignment: .center)
         .animation(.spring(), value: isBlocking)
     }
     
