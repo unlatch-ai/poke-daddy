@@ -14,6 +14,9 @@ struct PokeDaddyView: View {
     @EnvironmentObject private var authManager: AuthenticationManager
     @State private var pendingDraft: MessageDraft?
     @State private var lastRequestedBundleID: String?
+    @State private var showCompleteProfileSheet = false
+    @State private var emailInput: String = ""
+    @State private var nameInput: String = ""
     
     private var isBlocking : Bool {
         get {
@@ -46,6 +49,13 @@ struct PokeDaddyView: View {
             if let serverId = profileManager.currentServerProfileId {
                 appBlocker.refreshServerRestrictions(profileId: serverId)
             }
+            maybePromptForProfile()
+        }
+        .onChange(of: authManager.isAuthenticated) { _, newVal in
+            if newVal {
+                profileManager.loadServerProfiles()
+                maybePromptForProfile()
+            }
         }
         .sheet(item: $pendingDraft) { draft in
             MessageComposerView(draft: draft) {
@@ -54,6 +64,26 @@ struct PokeDaddyView: View {
                 if let bundle = lastRequestedBundleID, let profileId = profileManager.currentServerProfileId {
                     appBlocker.markAllowedIfServerUnblocked(candidateBundle: bundle, profileId: profileId)
                 }
+            }
+        }
+        .sheet(isPresented: $showCompleteProfileSheet) {
+            NavigationView {
+                Form {
+                    Section(header: Text("Complete Your Profile")) {
+                        TextField("Email", text: $emailInput)
+                            .keyboardType(.emailAddress)
+                            .textContentType(.emailAddress)
+                        TextField("Name (optional)", text: $nameInput)
+                    }
+                    Section {
+                        Button("Save") {
+                            authManager.completeProfile(email: emailInput.isEmpty ? nil : emailInput, name: nameInput.isEmpty ? nil : nameInput)
+                            showCompleteProfileSheet = false
+                        }.disabled(emailInput.isEmpty)
+                    }
+                }
+                .navigationTitle("Complete Profile")
+                .navigationBarItems(leading: Button("Cancel") { showCompleteProfileSheet = false })
             }
         }
         .ignoresSafeArea(.keyboard) // avoid layout shrink/cutoff when keyboard shows
@@ -142,6 +172,14 @@ struct PokeDaddyView: View {
             NSLog("[PokeDaddyApp] presenting SMS for bundleID=%@ name=%@", bundleID, name ?? "nil")
             pendingDraft = MessageFactory.draftForBlockedApp(bundleID: bundleID, appName: name)
             lastRequestedBundleID = bundleID
+        }
+    }
+
+    private func maybePromptForProfile() {
+        if let user = authManager.currentUser, (user.email == nil || user.email?.isEmpty == true) {
+            emailInput = ""
+            nameInput = user.name ?? ""
+            showCompleteProfileSheet = true
         }
     }
     

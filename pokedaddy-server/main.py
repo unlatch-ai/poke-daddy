@@ -213,6 +213,18 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     # Check if user already exists
     existing_user = db.query(User).filter(User.apple_user_id == user_data.apple_user_id).first()
     if existing_user:
+        # If new profile info is provided, update missing fields (email/name may be absent on later Apple sign-ins)
+        updated = False
+        if user_data.email and (existing_user.email is None or existing_user.email == ""):
+            existing_user.email = user_data.email
+            updated = True
+        if user_data.name and (existing_user.name is None or existing_user.name == ""):
+            existing_user.name = user_data.name
+            updated = True
+        if updated:
+            db.add(existing_user)
+            db.commit()
+
         # User exists, return token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(

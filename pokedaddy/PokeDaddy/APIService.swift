@@ -25,29 +25,44 @@ class APIService: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("PokeDaddy-iOS", forHTTPHeaderField: "User-Agent")
         
-        let body = [
-            "apple_user_id": appleUserID,
-            "email": email,
-            "name": name
-        ]
+        var body: [String: Any] = ["apple_user_id": appleUserID]
+        if let email = email, !email.isEmpty { body["email"] = email }
+        if let name = name, !name.isEmpty { body["name"] = name }
         
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         
         let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("[API] auth/register: no HTTPURLResponse")
             throw APIError.authenticationFailed
         }
-        
+        if httpResponse.statusCode != 200 {
+            let bodyStr = String(data: data, encoding: .utf8) ?? "<non-utf8>"
+            print("[API] auth/register failed: status=\(httpResponse.statusCode) body=\(bodyStr)")
+            throw APIError.authenticationFailed
+        }
+
         let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
         self.authToken = tokenResponse.access_token
-        
-        // Store token securely
         UserDefaults.standard.set(tokenResponse.access_token, forKey: "api_token")
-        
+        print("[API] auth/register: token saved (len=\(tokenResponse.access_token.count))")
         return tokenResponse.access_token
+    }
+
+    // Fetch the current user profile (requires auth token)
+    func getCurrentUser() async throws -> CurrentUserResponse {
+        guard let token = authToken else { throw APIError.notAuthenticated }
+        let url = URL(string: "\(baseURL)/users/me")!
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw APIError.requestFailed
+        }
+        return try JSONDecoder().decode(CurrentUserResponse.self, from: data)
     }
     
     func loadStoredToken() {
@@ -222,6 +237,14 @@ class APIService: ObservableObject {
 struct TokenResponse: Codable {
     let access_token: String
     let token_type: String
+}
+
+struct CurrentUserResponse: Codable {
+    let id: String
+    let email: String?
+    let name: String?
+    let apple_user_id: String
+    let is_active: Bool
 }
 
 struct ServerProfile: Codable, Identifiable {

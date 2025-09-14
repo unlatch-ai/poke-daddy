@@ -18,6 +18,7 @@ class AuthenticationManager: NSObject, ObservableObject {
     @Published var currentUser: User?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var needsProfileCompletion = false
     
     private let apiService = APIService.shared
     
@@ -103,6 +104,62 @@ class AuthenticationManager: NSObject, ObservableObject {
             
             // Load stored API token
             apiService.loadStoredToken()
+
+            // Fallback: if no API token is stored yet, register with server using stored user info
+            if UserDefaults.standard.string(forKey: "api_token") == nil {
+                Task {
+                    do {
+                        _ = try await self.apiService.authenticate(
+                            appleUserID: user.id,
+                            email: user.email,
+                            name: user.name
+                        )
+                        if let serverUser = try? await self.apiService.getCurrentUser() {
+                            let updated = User(id: serverUser.id,
+                                               email: serverUser.email,
+                                               name: serverUser.name,
+                                               allowedApps: user.allowedApps,
+                                               profiles: user.profiles)
+                            self.saveUser(updated)
+                            DispatchQueue.main.async { self.currentUser = updated }
+                        }
+                        DispatchQueue.main.async {
+                            self.needsProfileCompletion = (self.currentUser?.email == nil || self.currentUser?.email?.isEmpty == true)
+                        }
+                    } catch {
+                        print("Failed to authenticate with server using stored user: \(error)")
+                    }
+                }
+            }
+        }
+    }
+
+    // Allow user to supply email/name after Apple returns nil; also backfill server via /auth/register
+    func completeProfile(email: String?, name: String?) {
+        guard var user = currentUser else { return }
+        user.email = email
+        user.name = name
+        saveUser(user)
+        DispatchQueue.main.async {
+            self.currentUser = user
+            self.needsProfileCompletion = (email == nil || email?.isEmpty == true)
+        }
+
+        Task {
+            do {
+                _ = try await apiService.authenticate(appleUserID: user.id, email: email, name: name)
+                if let serverUser = try? await apiService.getCurrentUser() {
+                    let updated = User(id: serverUser.id,
+                                       email: serverUser.email,
+                                       name: serverUser.name,
+                                       allowedApps: user.allowedApps,
+                                       profiles: user.profiles)
+                    self.saveUser(updated)
+                    DispatchQueue.main.async { self.currentUser = updated }
+                }
+            } catch {
+                print("Failed to backfill profile to server: \(error)")
+            }
         }
     }
     
@@ -164,17 +221,20 @@ extension AuthenticationManager: ASAuthorizationControllerDelegate {
         
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
             let userID = appleIDCredential.user
-            let email = appleIDCredential.email
+            // Apple only provides email/name on the first authorization. Fallback to previously stored values if missing.
+            let email = appleIDCredential.email ?? (UserDefaults.standard.data(forKey: "currentUser").flatMap { try? JSONDecoder().decode(User.self, from: $0) }?.email)
             let fullName = appleIDCredential.fullName
-            
-            let name = [fullName?.givenName, fullName?.familyName]
+            // Compose name from Apple; if unavailable, fallback to stored name
+            let composedName = [fullName?.givenName, fullName?.familyName]
                 .compactMap { $0 }
                 .joined(separator: " ")
+            let storedName = UserDefaults.standard.data(forKey: "currentUser").flatMap { try? JSONDecoder().decode(User.self, from: $0) }?.name
+            let name = composedName.isEmpty ? storedName : composedName
             
             let user = User(
                 id: userID,
                 email: email,
-                name: name.isEmpty ? nil : name,
+                name: (name?.isEmpty ?? true) ? nil : name,
                 allowedApps: [],
                 profiles: []
             )
@@ -192,6 +252,15 @@ extension AuthenticationManager: ASAuthorizationControllerDelegate {
                             email: email,
                             name: name
                         )
+                        if let serverUser = try? await self.apiService.getCurrentUser() {
+                            let updated = User(id: serverUser.id,
+                                               email: serverUser.email,
+                                               name: serverUser.name,
+                                               allowedApps: user.allowedApps,
+                                               profiles: user.profiles)
+                            self.saveUser(updated)
+                            DispatchQueue.main.async { self.currentUser = updated }
+                        }
                     } catch {
                         print("Failed to authenticate with server: \(error)")
                     }
@@ -238,8 +307,8 @@ extension AuthenticationManager: ASAuthorizationControllerPresentationContextPro
 // MARK: - User Model
 struct User: Codable, Identifiable {
     let id: String
-    let email: String?
-    let name: String?
+    var email: String?
+    var name: String?
     var allowedApps: [String]
     var profiles: [Profile]
 }
