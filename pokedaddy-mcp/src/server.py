@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print(f"Starting PokeDaddy FastMCP server on {host}:{port}")
     
     mcp.run(
-        transport="sse",
+        transport="http",
         host=host,
         port=port
     )
