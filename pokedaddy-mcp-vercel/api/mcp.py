@@ -186,6 +186,26 @@ class handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
+            # Check Accept header to determine if client wants SSE format
+            accept_header = self.headers.get('Accept', '')
+            wants_sse = 'text/event-stream' in accept_header
+
+            # For SSE format, require both json and event-stream in Accept header
+            if wants_sse and 'application/json' not in accept_header:
+                self.send_response(406)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                error_response = {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32600,
+                        "message": "Not Acceptable: Client must accept both application/json and text/event-stream"
+                    }
+                }
+                self.wfile.write(json.dumps(error_response).encode())
+                return
+
             # Read request body
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length).decode('utf-8')
@@ -233,12 +253,23 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(error_response).encode())
                 return
 
-            # Send successful response
+            # Send response in appropriate format
             self.send_response(200)
-            self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(response).encode())
+
+            if wants_sse:
+                # Send as Server-Sent Events format (Streamable HTTP)
+                self.send_header('Content-type', 'text/event-stream')
+                self.send_header('Cache-Control', 'no-cache')
+                self.send_header('Connection', 'keep-alive')
+                self.end_headers()
+                sse_data = f"event: message\ndata: {json.dumps(response)}\n\n"
+                self.wfile.write(sse_data.encode())
+            else:
+                # Send as regular JSON
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(response).encode())
 
         except Exception as e:
             print(f"[MCP] Handler error: {e}")
