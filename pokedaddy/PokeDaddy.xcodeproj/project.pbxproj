@@ -15,6 +15,8 @@
 		6EC424BF2E7642270019E394 /* PokeDaddyShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6EC424B62E7642260019E394 /* PokeDaddyShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6EC424CC2E764BFD0019E394 /* AppGroupBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC424982E7641300019E394 /* AppGroupBridge.swift */; };
 		6EC424CD2E764BFD0019E394 /* AppGroupBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC424982E7641300019E394 /* AppGroupBridge.swift */; };
+		6EC424D42E7651A80019E394 /* TokenRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC424D32E7651A80019E394 /* TokenRegistry.swift */; };
+		6EC424D52E7651A80019E394 /* TokenRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC424D32E7651A80019E394 /* TokenRegistry.swift */; };
 		F51C38D22C775953003B4EB3 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F51C38D02C77594E003B4EB3 /* CoreNFC.framework */; };
 		F51C38D72C775CAF003B4EB3 /* AppBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38D62C775CAF003B4EB3 /* AppBlocker.swift */; };
 		F51C38D92C775CEC003B4EB3 /* NfcReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F51C38D82C775CEC003B4EB3 /* NfcReader.swift */; };
@@ -67,6 +69,7 @@
 /* Begin PBXFileReference section */
 		6EC424962E7641300019E394 /* MessageComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComposer.swift; sourceTree = "<group>"; };
 		6EC424982E7641300019E394 /* AppGroupBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupBridge.swift; sourceTree = "<group>"; };
+		6EC424D32E7651A80019E394 /* TokenRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRegistry.swift; sourceTree = "<group>"; };
 		6EC424A02E7641F10019E394 /* PokeDaddyShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PokeDaddyShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		6EC424A12E7641F10019E394 /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
 		6EC424A32E7641F10019E394 /* ManagedSettingsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettingsUI.framework; path = System/Library/Frameworks/ManagedSettingsUI.framework; sourceTree = SDKROOT; };
@@ -153,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				6EC424982E7641300019E394 /* AppGroupBridge.swift */,
+				6EC424D32E7651A80019E394 /* TokenRegistry.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -375,6 +379,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6EC424CD2E764BFD0019E394 /* AppGroupBridge.swift in Sources */,
+				6EC424D52E7651A80019E394 /* TokenRegistry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -394,6 +399,7 @@
 				F5A3B0AE2C94E3600BD6C7F /* APIService.swift in Sources */,
 				6EC4249A2E7641300019E394 /* MessageComposer.swift in Sources */,
 				6EC4249B2E7641300019E394 /* AppGroupBridge.swift in Sources */,
+				6EC424D42E7651A80019E394 /* TokenRegistry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

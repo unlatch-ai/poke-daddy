@@ -12,7 +12,8 @@ import ManagedSettings
 class APIService: ObservableObject {
     static let shared = APIService()
     
-    private let baseURL = "http://localhost:8000"
+    // Production server
+    private let baseURL = "https://poke-daddy.vercel.app"
     private var authToken: String?
     
     private init() {}
@@ -194,7 +195,12 @@ class APIService: ObservableObject {
         return try JSONDecoder().decode(BlockingStatusResponse.self, from: data)
     }
     
-    func getRestrictedApps(profileId: String) async throws -> [String] {
+    struct RestrictedAppsPayload: Codable {
+        let restricted_apps: [String]
+        let restricted_categories: [String]
+    }
+
+    func getRestrictedApps(profileId: String) async throws -> RestrictedAppsPayload {
         guard let token = authToken else { throw APIError.notAuthenticated }
         
         let url = URL(string: "\(baseURL)/profiles/\(profileId)/restricted-apps")!
@@ -207,8 +213,7 @@ class APIService: ObservableObject {
               httpResponse.statusCode == 200 else {
             throw APIError.requestFailed
         }
-        
-        return try JSONDecoder().decode([String].self, from: data)
+        return try JSONDecoder().decode(RestrictedAppsPayload.self, from: data)
     }
 }
 

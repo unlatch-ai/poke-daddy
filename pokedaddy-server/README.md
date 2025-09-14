@@ -36,6 +36,20 @@ A FastAPI server that provides centralized control over app restrictions for the
 
 The server will start on `http://localhost:8000`
 
+### Running Tests (Golden Path)
+
+We include a pytest that exercises the end-to-end blocking flow (register → create profile → start blocking → check restricted apps → admin unblock → admin end-blocking).
+
+1. Install test deps:
+   ```bash
+   pip install -r requirements.txt pytest
+   ```
+2. Run tests (uses a temporary SQLite DB via `POSTGRES_URL=sqlite:///./test_golden.db`):
+   ```bash
+   pytest -q
+   ```
+   You should see the golden path test passing.
+
 ### Configuration
 
 - **Database**: Uses SQLite database (`pokedaddy.db`) created automatically

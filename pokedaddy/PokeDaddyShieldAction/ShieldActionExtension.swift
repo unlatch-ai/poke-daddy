@@ -19,6 +19,18 @@ class ShieldActionExtension: ShieldActionDelegate {
             if let b = ctx.bundleID, !b.isEmpty {
                 // Prefer the name from context; if missing, try the latest stored name for this bundle.
                 let name = (ctx.appName?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? AppGroupBridge.latestName(forBundleID: b)
+                // If server (via app) has marked this bundle as allowed, set an exception for this token now.
+                if AppGroupBridge.isBundleAllowed(b) {
+                    let store = ManagedSettingsStore()
+                    var blocked = store.shield.applications ?? []
+                    if blocked.contains(application) {
+                        blocked.remove(application)
+                        store.shield.applications = blocked.isEmpty ? nil : blocked
+                        NSLog("[ShieldAction] removed token from blocked set for %@ (remaining: %d)", b, blocked.count)
+                    } else {
+                        NSLog("[ShieldAction] token for %@ not currently in blocked set", b)
+                    }
+                }
                 AppGroupBridge.setPendingMessageRequest(bundleID: b, appName: name)
             } else if let attempt = AppGroupBridge.latestAttempt() {
                 AppGroupBridge.setPendingMessageRequest(bundleID: attempt.bundleID, appName: attempt.appName)

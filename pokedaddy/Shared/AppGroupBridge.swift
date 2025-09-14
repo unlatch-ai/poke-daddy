@@ -20,6 +20,7 @@ enum AppGroupBridge {
         static let lastAttempts = "shield_attempts"
         static let contextBundleID = "current_context_bundle_id"
         static let contextAppName = "current_context_app_name"
+        static let allowedBundles = "allowed_bundles"
     }
 
     struct BlockAttempt: Codable {
@@ -75,6 +76,30 @@ enum AppGroupBridge {
         let b = defaults?.string(forKey: Keys.contextBundleID)
         let n = defaults?.string(forKey: Keys.contextAppName)
         return (b, n)
+    }
+
+    // MARK: - Allowed Bundles (server-unblocked)
+    static func addAllowedBundle(_ bundleID: String) {
+        var set = allowedBundles()
+        set.insert(bundleID)
+        defaults?.set(Array(set), forKey: Keys.allowedBundles)
+        NSLog("[AppGroupBridge] addAllowedBundle %@", bundleID)
+    }
+
+    static func isBundleAllowed(_ bundleID: String) -> Bool {
+        allowedBundles().contains(bundleID)
+    }
+
+    static func removeAllowedBundle(_ bundleID: String) {
+        var set = allowedBundles()
+        set.remove(bundleID)
+        defaults?.set(Array(set), forKey: Keys.allowedBundles)
+        NSLog("[AppGroupBridge] removeAllowedBundle %@", bundleID)
+    }
+
+    static func allowedBundles() -> Set<String> {
+        let arr = defaults?.array(forKey: Keys.allowedBundles) as? [String] ?? []
+        return Set(arr)
     }
 
     // MARK: - Pending Message Request

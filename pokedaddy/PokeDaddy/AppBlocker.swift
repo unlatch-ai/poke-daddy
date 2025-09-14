@@ -12,6 +12,7 @@ class AppBlocker: ObservableObject {
     let store = ManagedSettingsStore()
     @Published var isBlocking = false
     @Published var isAuthorized = false
+    private var baseBlockedTokens: Set<ApplicationToken> = []
     
     private let apiService = APIService.shared
     
@@ -53,6 +54,7 @@ class AppBlocker: ObservableObject {
         
         isBlocking = true
         saveBlockingState()
+        baseBlockedTokens = profile.appTokens
         applyBlockingSettings(for: profile)
     }
     
@@ -62,6 +64,7 @@ class AppBlocker: ObservableObject {
                 let response = try await apiService.toggleBlocking(profileId: profileId, action: "start")
                 
                 DispatchQueue.main.async {
+                    NSLog("[Server] toggle start response is_blocking=%@ profile_id=%@", String(response.is_blocking), response.profile_id ?? "nil")
                     self.isBlocking = response.is_blocking
                     self.saveBlockingState()
                     
@@ -70,7 +73,7 @@ class AppBlocker: ObservableObject {
                     }
                 }
             } catch {
-                print("Failed to start server blocking: \(error)")
+                NSLog("[Server] Failed to start server blocking: %@", String(describing: error))
             }
         }
     }
@@ -92,25 +95,57 @@ class AppBlocker: ObservableObject {
             print("Failed to check server blocking status: \(error)")
         }
     }
+
+    // Public wrapper to allow UI to manually refresh blocking status
+    func refreshBlockingStatus() {
+        Task { await checkServerBlockingStatus() }
+    }
+
+    // Expose a simple refresh API for the UI to call after an unblock action completes
+    func refreshServerRestrictions(profileId: String?) {
+        guard isBlocking, let profileId = profileId else { return }
+        applyServerBlockingSettings(profileId: profileId)
+    }
     
     private func applyServerBlockingSettings(profileId: String) {
         Task {
             do {
-                let restrictedApps = try await apiService.getRestrictedApps(profileId: profileId)
+                let payload = try await apiService.getRestrictedApps(profileId: profileId)
+                let restrictedApps = Set(payload.restricted_apps)
                 DispatchQueue.main.async {
                     #if targetEnvironment(simulator)
-                    NSLog("[SIMULATOR] Mock blocking \(restrictedApps.count) apps from server")
+                    NSLog("[SIMULATOR] Server reports restricted apps: \(restrictedApps.count)")
                     #else
-                    // For now, we'll block all apps since we need to convert bundle IDs to ApplicationTokens
-                    // In a real implementation, you'd need to map bundle IDs to ApplicationTokens
-                    NSLog("Blocking \(restrictedApps.count) apps from server")
-                    // TODO: Implement proper conversion from bundle IDs to ApplicationTokens
-                    self.store.shield.applications = nil // Placeholder - needs proper implementation
+                    // If there are allowed bundles, do not overwrite the store state that the extension adjusted
+                    if AppGroupBridge.allowedBundles().isEmpty {
+                        self.store.shield.applications = self.baseBlockedTokens.isEmpty ? nil : self.baseBlockedTokens
+                    } else {
+                        NSLog("Skipping reset of blocked tokens due to allowed bundle exceptions present")
+                    }
                     self.store.shield.applicationCategories = ShieldSettings.ActivityCategoryPolicy.none
                     #endif
                 }
             } catch {
                 print("Failed to get restricted apps: \(error)")
+            }
+        }
+    }
+
+    // Called after the SMS/LLM flow completes. If the candidate bundle is no longer in the server list,
+    // record it as allowed so the next attempt can be excepted by the shield action extension.
+    func markAllowedIfServerUnblocked(candidateBundle: String, profileId: String) {
+        Task {
+            do {
+                let payload = try await apiService.getRestrictedApps(profileId: profileId)
+                if !payload.restricted_apps.contains(candidateBundle) {
+                    AppGroupBridge.addAllowedBundle(candidateBundle)
+                }
+                // Re-apply settings to ensure store is up to date
+                DispatchQueue.main.async {
+                    self.applyServerBlockingSettings(profileId: profileId)
+                }
+            } catch {
+                print("Failed to refresh after unblock: \(error)")
             }
         }
     }
