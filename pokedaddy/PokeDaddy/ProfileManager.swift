@@ -8,6 +8,8 @@
 import Foundation
 import FamilyControls
 import ManagedSettings
+import SwiftUI
+ 
 
 class ProfileManager: ObservableObject {
     @Published var profiles: [Profile] = []
@@ -114,6 +116,38 @@ class ProfileManager: ObservableObject {
             } catch {
                 print("Failed to load server profiles: \(error)")
                 DispatchQueue.main.async { completion(nil) }
+            }
+        }
+    }
+
+    // Merge observed bundle IDs (from shield attempts) into the current server profile's restricted_apps
+    func syncObservedBundlesToServer(onComplete: @escaping (Bool) -> Void) {
+        guard let currentId = currentServerProfileId else {
+            onComplete(false); return
+        }
+        let attempts = AppGroupBridge.fetchAttempts(max: 500)
+        var observed = Set(attempts.map { $0.bundleID })
+        observed.remove("")
+        observed.remove("unknown.bundle")
+        observed.remove("uknown.bundle")
+        
+        Task {
+            do {
+                let profiles = try await apiService.getProfiles()
+                guard let serverProfile = profiles.first(where: { $0.id == currentId }) else { onComplete(false); return }
+                let existing = Set(serverProfile.restricted_apps)
+                let merged = Array(existing.union(observed))
+                _ = try await apiService.updateProfile(
+                    profileId: serverProfile.id,
+                    name: nil,
+                    icon: nil,
+                    restrictedApps: merged,
+                    restrictedCategories: nil
+                )
+                DispatchQueue.main.async { onComplete(true) }
+            } catch {
+                print("Failed to sync observed bundles: \(error)")
+                DispatchQueue.main.async { onComplete(false) }
             }
         }
     }

@@ -12,6 +12,11 @@ class AppBlocker: ObservableObject {
     let store = ManagedSettingsStore()
     @Published var isBlocking = false
     @Published var isAuthorized = false
+    // Server status indicator fields
+    @Published var serverIsBlocking = false
+    @Published var serverProfileId: String?
+    @Published var serverSessionId: String?
+    @Published var serverStartedAt: String?
     private var baseBlockedTokens: Set<ApplicationToken> = []
     
     private let apiService = APIService.shared
@@ -83,6 +88,10 @@ class AppBlocker: ObservableObject {
             let status = try await apiService.getBlockingStatus()
             DispatchQueue.main.async {
                 self.isBlocking = status.is_blocking
+                self.serverIsBlocking = status.is_blocking
+                self.serverProfileId = status.profile_id
+                self.serverSessionId = status.session_id
+                self.serverStartedAt = status.started_at
                 self.saveBlockingState()
                 
                 if status.is_blocking, let profileId = status.profile_id {

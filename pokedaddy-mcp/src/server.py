@@ -56,9 +56,10 @@ def get_mcp_config() -> dict:
     }
 
 @mcp.tool(description="Get a user's current blocking status and restricted apps using their email")
-def get_user_blocking_status(user_email: str) -> dict:
+def get_user_blocking_status(user_email: str = "", email: str = "") -> dict:
     """Calls the server's /admin/status-by-email to return status for a given user."""
     try:
+        user_email = user_email or email
         if not user_email:
             return {"error": "No user email provided", "valid": False}
         url = f"{POKEDADDY_SERVER_URL}/admin/status-by-email"
@@ -73,11 +74,13 @@ def get_user_blocking_status(user_email: str) -> dict:
         return {"error": f"Failed to get user status: {str(e)}", "valid": False}
 
 @mcp.tool(description="Unblock a specific app for a user with reasoning")
-def unblock_app(user_email: str, app_bundle_id: str, reason: str = "") -> dict:
+def unblock_app(user_email: str = "", email: str = "", app_bundle_id: str = "", appBundleId: str = "", reason: str = "") -> dict:
     """Calls /admin/unblock-app-by-email on the server to remove the app from the user's restricted list."""
     try:
+        user_email = user_email or email
         if not user_email:
             return {"error": "No user email provided", "success": False}
+        app_bundle_id = app_bundle_id or appBundleId
         if not app_bundle_id:
             return {"error": "No app bundle ID provided", "success": False}
         url = f"{POKEDADDY_SERVER_URL}/admin/unblock-app-by-email"
@@ -93,9 +96,10 @@ def unblock_app(user_email: str, app_bundle_id: str, reason: str = "") -> dict:
         return {"error": f"Failed to unblock app: {str(e)}", "success": False}
 
 @mcp.tool(description="End a user's entire blocking session with reasoning")
-def end_blocking_session(user_email: str, reason: str = "") -> dict:
+def end_blocking_session(user_email: str = "", email: str = "", reason: str = "") -> dict:
     """Calls /admin/end-blocking-by-email to end the user's blocking session."""
     try:
+        user_email = user_email or email
         if not user_email:
             return {"error": "No user email provided", "success": False}
         url = f"{POKEDADDY_SERVER_URL}/admin/end-blocking-by-email"
@@ -112,15 +116,18 @@ def end_blocking_session(user_email: str, reason: str = "") -> dict:
 
 
 @mcp.tool(description="Start a user's blocking session by email (optionally choose a profile)")
-def start_blocking_session(user_email: str, profile_id: str = "", profile_name: str = "") -> dict:
+def start_blocking_session(user_email: str = "", email: str = "", profile_id: str = "", profileId: str = "", profile_name: str = "", profileName: str = "") -> dict:
     """Calls /admin/start-blocking-by-email to start a blocking session for the user.
     If profile_id is blank, the server uses the default or first profile.
     """
     try:
+        user_email = user_email or email
         if not user_email:
             return {"error": "No user email provided", "success": False}
         url = f"{POKEDADDY_SERVER_URL}/admin/start-blocking-by-email"
         params = {"email": user_email}
+        profile_id = profile_id or profileId
+        profile_name = profile_name or profileName
         if profile_id:
             params["profile_id"] = profile_id
         if profile_name:

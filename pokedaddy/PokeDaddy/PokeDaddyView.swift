@@ -28,6 +28,7 @@ struct PokeDaddyView: View {
         NavigationView {
             VStack(spacing: 0) {
                 blockOrUnblockSection
+                serverStatusBar
 
                 if !isBlocking {
                     Divider()
@@ -39,7 +40,7 @@ struct PokeDaddyView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             // Use global gradient background from PokeDaddyApp
             .background(Color.clear)
-            .navigationBarItems(leading: signOutButton, trailing: refreshButton)
+            .navigationBarItems(leading: signOutButton, trailing: HStack { refreshButton; syncButton })
         }
         .animation(.spring(), value: isBlocking)
         .onAppear(perform: checkForPendingMessage)
@@ -175,6 +176,43 @@ struct PokeDaddyView: View {
                 EmptyView()
             }
         }
+    }
+
+    private var syncButton: some View {
+        Group {
+            if isBlocking {
+                Button(action: {
+                    profileManager.syncObservedBundlesToServer { ok in
+                        NSLog(ok ? "[Server] Synced observed bundles to server" : "[Server] Sync failed")
+                    }
+                }) {
+                    Image(systemName: "icloud.and.arrow.up")
+                }
+                .accessibilityLabel(Text("Sync Profile to Server"))
+            } else {
+                EmptyView()
+            }
+        }
+    }
+
+    private var serverStatusBar: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(appBlocker.serverIsBlocking ? Color.green : Color.red)
+                .frame(width: 8, height: 8)
+            Text(appBlocker.serverIsBlocking ? "Server: Active" : "Server: Inactive")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            if let pid = appBlocker.serverProfileId {
+                Text("Profile: \(pid.prefix(6))…")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .background(Color(.secondarySystemBackground))
     }
     
     private func checkForPendingMessage() {
