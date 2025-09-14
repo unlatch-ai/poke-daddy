@@ -218,4 +218,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"[MCP] keepalive init error: {e}")
 
-    mcp.run(transport="http", host=host, port=port)
+    mcp.run(transport="http", host=host, port=port, stateless_http=True)
