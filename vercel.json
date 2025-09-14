@@ -1,0 +1,30 @@
+{
+  "builds": [
+    {
+      "src": "pokedaddy-server/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/mcp.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/mcp",
+      "dest": "/api/mcp"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/pokedaddy-server/main.py"
+    }
+  ],
+  "functions": {
+    "api/mcp.py": {
+      "includeFiles": "requirements-mcp.txt"
+    },
+    "pokedaddy-server/main.py": {
+      "includeFiles": "pokedaddy-server/requirements.txt"
+    }
+  }
+}
