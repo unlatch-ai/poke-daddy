@@ -46,96 +46,54 @@ def get_pokedaddy_info() -> dict:
     }
 
 # Configuration
-POKEDADDY_SERVER_URL = "https://poke-daddy.vercel.app"
+POKEDADDY_SERVER_URL = os.environ.get("POKEDADDY_SERVER_URL", "https://poke-daddy.vercel.app")
 
 @mcp.tool(description="Get a user's current blocking status and restricted apps using their email")
 def get_user_blocking_status(user_email: str) -> dict:
-    """Get detailed information about a user's current blocking session"""
+    """Calls the server's /admin/status-by-email to return status for a given user."""
     try:
         if not user_email:
             return {"error": "No user email provided", "valid": False}
-        
-        # For testing, return mock data for test email
-        if user_email == "deatrh1kiss@gmail.com":
-            return {
-                "valid": True,
-                "user_id": "test_user_123",
-                "is_blocking": True,
-                "profile_id": "test_profile_456",
-                "session_id": "test_session_789",
-                "started_at": "2024-01-15T10:30:00Z",
-                "blocked_apps": [
-                    "com.instagram.app",
-                    "com.twitter.twitter", 
-                    "com.facebook.Facebook",
-                    "com.tiktok.TikTok"
-                ],
-                "blocked_categories": ["Social Media", "Entertainment"],
-                "message": "User is currently blocking 4 apps in Social Media and Entertainment categories"
-            }
-        
-        # For live server, we'll need to implement email-based lookup
-        # For now, return error since we need API key for JWT auth
-        return {"error": "Live server integration requires API key, not email. Email-based lookup not yet implemented.", "valid": False}
-            
+        url = f"{POKEDADDY_SERVER_URL}/admin/status-by-email"
+        r = requests.get(url, params={"email": user_email}, timeout=10)
+        if r.status_code != 200:
+            return {"error": f"status lookup failed: {r.status_code} {r.text}", "valid": False}
+        data = r.json()
+        return data
     except Exception as e:
         return {"error": f"Failed to get user status: {str(e)}", "valid": False}
 
 @mcp.tool(description="Unblock a specific app for a user with reasoning")
-def unblock_app(user_email: str, app_bundle_id: str, reason: str) -> dict:
-    """Unblock a specific app for a user, requires justification"""
+def unblock_app(user_email: str, app_bundle_id: str, reason: str = "") -> dict:
+    """Calls /admin/unblock-app-by-email on the server to remove the app from the user's restricted list."""
     try:
         if not user_email:
             return {"error": "No user email provided", "success": False}
-        
         if not app_bundle_id:
             return {"error": "No app bundle ID provided", "success": False}
-        
-        if not reason:
-            return {"error": "No reason provided", "success": False}
-        
-        # For test email, return mock success
-        if user_email == "deatrh1kiss@gmail.com":
-            mock_remaining_apps = ["com.twitter.twitter", "com.facebook.Facebook", "com.tiktok.TikTok"]
-            return {
-                "success": True,
-                "message": f"Successfully unblocked {app_bundle_id}",
-                "app_unblocked": app_bundle_id,
-                "reason_logged": reason,
-                "remaining_blocked_apps": mock_remaining_apps
-            }
-        
-        # For live server, we need to implement email-to-user-ID lookup
-        # For now, return error since we need proper authentication
-        return {"error": "Live server integration requires API key authentication. Email-based lookup not yet implemented.", "success": False}
-            
+        url = f"{POKEDADDY_SERVER_URL}/admin/unblock-app-by-email"
+        r = requests.post(url, params={"email": user_email, "app_bundle_id": app_bundle_id}, timeout=10)
+        if r.status_code != 200:
+            return {"error": f"unblock failed: {r.status_code} {r.text}", "success": False}
+        data = r.json()
+        data.update({"success": True, "app_unblocked": app_bundle_id, "reason_logged": reason})
+        return data
     except Exception as e:
         return {"error": f"Failed to unblock app: {str(e)}", "success": False}
 
 @mcp.tool(description="End a user's entire blocking session with reasoning")
-def end_blocking_session(user_email: str, reason: str) -> dict:
-    """Completely end a user's blocking session, unblocking all apps"""
+def end_blocking_session(user_email: str, reason: str = "") -> dict:
+    """Calls /admin/end-blocking-by-email to end the user's blocking session."""
     try:
         if not user_email:
             return {"error": "No user email provided", "success": False}
-        
-        if not reason:
-            return {"error": "No reason provided", "success": False}
-        
-        # For test email, return mock success
-        if user_email == "deatrh1kiss@gmail.com":
-            return {
-                "success": True,
-                "message": "Successfully ended blocking session",
-                "session_ended": True,
-                "reason_logged": reason,
-                "apps_unblocked": ["com.instagram.app", "com.twitter.twitter", "com.facebook.Facebook", "com.tiktok.TikTok"]
-            }
-        
-        # For live server, we need to implement email-to-user-ID lookup
-        # For now, return error since we need proper authentication
-        return {"error": "Live server integration requires API key authentication. Email-based lookup not yet implemented.", "success": False}
-            
+        url = f"{POKEDADDY_SERVER_URL}/admin/end-blocking-by-email"
+        r = requests.post(url, params={"email": user_email}, timeout=10)
+        if r.status_code != 200:
+            return {"error": f"end-blocking failed: {r.status_code} {r.text}", "success": False}
+        data = r.json()
+        data.update({"success": True, "session_ended": True, "reason_logged": reason})
+        return data
     except Exception as e:
         return {"error": f"Failed to end blocking session: {str(e)}", "success": False}
 

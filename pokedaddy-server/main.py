@@ -520,6 +520,125 @@ async def end_blocking_session(user_id: str, profile_id: str, db: Session = Depe
     
     return {"message": "Blocking session ended", "session_id": active_session.id}
 
+# -----------------------------
+# Admin convenience endpoints for MCP by email
+# -----------------------------
+
+@app.get("/admin/status-by-email")
+async def admin_status_by_email(email: str, db: Session = Depends(get_db)):
+    """Lookup a user's blocking status and active profile by email (no auth, for MCP/demo).
+    Returns: { valid, user_id, is_blocking, profile_id, session_id, started_at, restricted_apps, restricted_categories }
+    """
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    active_session = db.query(BlockingSession).filter(
+        BlockingSession.user_id == user.id,
+        BlockingSession.is_active == True
+    ).first()
+
+    if not active_session:
+        return {
+            "valid": True,
+            "user_id": user.id,
+            "is_blocking": False,
+            "profile_id": None,
+            "session_id": None,
+            "started_at": None,
+            "restricted_apps": [],
+            "restricted_categories": []
+        }
+
+    profile = db.query(UserProfile).filter(
+        UserProfile.id == active_session.profile_id,
+        UserProfile.user_id == user.id
+    ).first()
+
+    if not profile:
+        # Return status with minimal info if profile record is missing
+        return {
+            "valid": True,
+            "user_id": user.id,
+            "is_blocking": True,
+            "profile_id": active_session.profile_id,
+            "session_id": active_session.id,
+            "started_at": active_session.started_at,
+            "restricted_apps": [],
+            "restricted_categories": []
+        }
+
+    return {
+        "valid": True,
+        "user_id": user.id,
+        "is_blocking": True,
+        "profile_id": profile.id,
+        "session_id": active_session.id,
+        "started_at": active_session.started_at,
+        "restricted_apps": json.loads(profile.restricted_apps),
+        "restricted_categories": json.loads(profile.restricted_categories)
+    }
+
+
+@app.post("/admin/unblock-app-by-email")
+async def admin_unblock_app_by_email(email: str, app_bundle_id: str, db: Session = Depends(get_db)):
+    """Unblock a specific app for a user identified by email (no auth, for MCP/demo)."""
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    active_session = db.query(BlockingSession).filter(
+        BlockingSession.user_id == user.id,
+        BlockingSession.is_active == True
+    ).first()
+    if not active_session:
+        raise HTTPException(status_code=404, detail="No active blocking session found")
+
+    profile = db.query(UserProfile).filter(
+        UserProfile.id == active_session.profile_id,
+        UserProfile.user_id == user.id
+    ).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    restricted_apps = json.loads(profile.restricted_apps)
+    if app_bundle_id in restricted_apps:
+        restricted_apps.remove(app_bundle_id)
+        profile.restricted_apps = json.dumps(restricted_apps)
+        db.commit()
+        return {
+            "message": f"App {app_bundle_id} unblocked",
+            "remaining_apps": restricted_apps,
+            "user_id": user.id,
+            "profile_id": profile.id
+        }
+    return {
+        "message": "App was not in restricted list",
+        "remaining_apps": restricted_apps,
+        "user_id": user.id,
+        "profile_id": profile.id
+    }
+
+
+@app.post("/admin/end-blocking-by-email")
+async def admin_end_blocking_by_email(email: str, db: Session = Depends(get_db)):
+    """End a user's blocking session by email (no auth, for MCP/demo)."""
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    active_session = db.query(BlockingSession).filter(
+        BlockingSession.user_id == user.id,
+        BlockingSession.is_active == True
+    ).first()
+    if not active_session:
+        raise HTTPException(status_code=404, detail="No active blocking session found")
+
+    active_session.ended_at = datetime.utcnow()
+    active_session.is_active = False
+    db.commit()
+    return {"message": "Blocking session ended", "session_id": active_session.id}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
