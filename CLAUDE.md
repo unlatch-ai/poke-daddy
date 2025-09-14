@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 PokeDaddy is a three-component system for smartphone app blocking:
 - **iOS App** (`pokedaddy/`): Swift/SwiftUI native app using Apple's Family Controls framework
 - **FastAPI Server** (`pokedaddy-server/`): Python server providing centralized control over app restrictions
-- **MCP Server** (`pokedaddy-mcp/`): FastMCP server providing Model Context Protocol tools for PokeDaddy integration
+- **MCP Server** (`pokedaddy-mcp-vercel/`): Serverless MCP server on Vercel providing Model Context Protocol tools for PokeDaddy integration
 
 The architecture implements one-way blocking: users can start app restrictions but only the server can end them or unblock individual apps.
 
@@ -29,18 +29,15 @@ python main.py
 ### MCP Server Development
 ```bash
 # Navigate to MCP server directory
-cd pokedaddy-mcp
+cd pokedaddy-mcp-vercel
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Start development server
-python src/server.py
-# Server runs on http://localhost:8000/mcp
+# Deploy to Vercel
+vercel --prod
+# Production URL: https://pokedaddy-mcp-vercel.vercel.app/api/mcp
 
 # Test with MCP Inspector
 npx @modelcontextprotocol/inspector
-# Connect to http://localhost:8000/mcp or https://poke-daddy.onrender.com/mcp
+# Connect to https://pokedaddy-mcp-vercel.vercel.app/api/mcp
 ```
 
 ### iOS Development

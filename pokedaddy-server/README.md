@@ -21,7 +21,7 @@ A FastAPI server that provides centralized control over app restrictions for the
 
 1. **Navigate to the server directory:**
    ```bash
-   cd /Users/olsenbudanur/Desktop/code/hackathons/poke2/pokedaddy-server
+   cd pokedaddy-server
    ```
 
 2. **Install dependencies:**
