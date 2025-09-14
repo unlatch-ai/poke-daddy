@@ -158,13 +158,14 @@ TOOL_DESCRIPTIONS = [
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # Simple health check that shows MCP server is ready
+        # Check if client wants SSE format
+        accept_header = self.headers.get('Accept', '')
+        wants_sse = 'text/event-stream' in accept_header
+
         self.send_response(200)
-        self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        self.end_headers()
 
         # Return MCP-style response similar to what Render server returns
         response = {
@@ -174,7 +175,20 @@ class handler(BaseHTTPRequestHandler):
                 "message": "Invalid Request - use POST with proper MCP protocol"
             }
         }
-        self.wfile.write(json.dumps(response).encode())
+
+        if wants_sse:
+            # Send as Server-Sent Events format
+            self.send_header('Content-type', 'text/event-stream')
+            self.send_header('Cache-Control', 'no-cache')
+            self.send_header('Connection', 'keep-alive')
+            self.end_headers()
+            sse_data = f"event: message\ndata: {json.dumps(response)}\n\n"
+            self.wfile.write(sse_data.encode())
+        else:
+            # Send as regular JSON
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(response).encode())
 
     def do_OPTIONS(self):
         # Handle preflight CORS requests
