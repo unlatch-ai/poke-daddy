@@ -232,7 +232,30 @@ class handler(BaseHTTPRequestHandler):
 
             method = body_json.get('method', '')
 
-            if method == 'tools/list':
+            if method == 'initialize':
+                # MCP initialize handshake - return server capabilities
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": body_json.get("id"),
+                    "result": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {
+                            "tools": {}
+                        },
+                        "serverInfo": {
+                            "name": "PokeDaddy MCP Server",
+                            "version": "1.0.0"
+                        }
+                    }
+                }
+            elif method == 'notifications/initialized':
+                # Client finished initialization - just acknowledge
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": body_json.get("id"),
+                    "result": {}
+                }
+            elif method == 'tools/list':
                 response = {
                     "jsonrpc": "2.0",
                     "id": body_json.get("id"),
