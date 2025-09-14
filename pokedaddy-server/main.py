@@ -25,7 +25,27 @@ if not POSTGRES_URL:
 if POSTGRES_URL.startswith("postgres://"):
     POSTGRES_URL = POSTGRES_URL.replace("postgres://", "postgresql://", 1)
 
-engine = create_engine(POSTGRES_URL)
+# Remove invalid Vercel-specific parameters that psycopg2 doesn't recognize
+import urllib.parse
+parsed_url = urllib.parse.urlparse(POSTGRES_URL)
+query_params = urllib.parse.parse_qs(parsed_url.query)
+
+# Remove the 'supa' parameter that Vercel adds but psycopg2 doesn't support
+if 'supa' in query_params:
+    del query_params['supa']
+
+# Rebuild the URL without the invalid parameter
+clean_query = urllib.parse.urlencode(query_params, doseq=True)
+clean_url = urllib.parse.urlunparse((
+    parsed_url.scheme,
+    parsed_url.netloc,
+    parsed_url.path,
+    parsed_url.params,
+    clean_query,
+    parsed_url.fragment
+))
+
+engine = create_engine(clean_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
