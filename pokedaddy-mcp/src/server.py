@@ -144,14 +144,74 @@ def start_blocking_session(user_email: str = "", email: str = "", profile_id: st
         return {"error": f"Failed to start blocking session: {str(e)}", "success": False}
 
 
+# ------------------------------------------------------------------
+# Tool aliases to tolerate different client naming conventions
+# ------------------------------------------------------------------
+
+@mcp.tool(description="Alias of get_server_info")
+def getserverinfo() -> dict:
+    return get_server_info()
+
+@mcp.tool(description="Alias of get_pokedaddy_info")
+def getpokedaddyinfo() -> dict:
+    return get_pokedaddy_info()
+# Simple health tool
+@mcp.tool(description="Health check for MCP server")
+def health() -> dict:
+    return {"status": "ok"}
+
+
+@mcp.tool(description="Alias of get_user_blocking_status")
+def getuserblocking_status(email: str = "", user_email: str = "") -> dict:
+    return get_user_blocking_status(user_email=user_email or email)
+
+@mcp.tool(description="Alias of end_blocking_session")
+def endblockingsession(email: str = "", user_email: str = "", reason: str = "") -> dict:
+    return end_blocking_session(user_email=user_email or email, reason=reason)
+
+@mcp.tool(description="Alias of start_blocking_session")
+def startblockingsession(email: str = "", user_email: str = "", profile_id: str = "", profileId: str = "", profile_name: str = "", profileName: str = "") -> dict:
+    return start_blocking_session(user_email=user_email or email, profile_id=profile_id or profileId, profile_name=profile_name or profileName)
+
+@mcp.tool(description="Alias of unblock_app")
+def unblockapp(email: str = "", user_email: str = "", app_bundle_id: str = "", appBundleId: str = "", reason: str = "") -> dict:
+    return unblock_app(user_email=user_email or email, app_bundle_id=app_bundle_id or appBundleId, reason=reason)
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     host = "0.0.0.0"
-    
+
     print(f"Starting FastMCP server on {host}:{port}")
-    
-    mcp.run(
-        transport="http",
-        host=host,
-        port=port
-    )
+
+    # Optional keepalive pinger to reduce cold starts on free hosting.
+    # It pings the MCP HTTP endpoint every N seconds. Disable with MCP_KEEPALIVE=0.
+    try:
+        import threading, time
+
+        keepalive_enabled = os.environ.get("MCP_KEEPALIVE", "1").lower() in ("1", "true", "yes")
+        if keepalive_enabled:
+            ext = os.environ.get("MCP_KEEPALIVE_URL")
+            if not ext:
+                render_url = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+                if render_url:
+                    ext = f"{render_url}/mcp"
+                else:
+                    ext = f"http://127.0.0.1:{port}/mcp"
+            interval = int(os.environ.get("MCP_KEEPALIVE_SECONDS", "300"))
+
+            def _keepalive(url: str, sec: int):
+                print(f"[MCP] keepalive enabled -> {url} every {sec}s")
+                while True:
+                    try:
+                        # Any inbound request counts as traffic; 400/404 still wakes the instance
+                        requests.get(url, timeout=5)
+                    except Exception as e:
+                        print(f"[MCP] keepalive ping failed: {e}")
+                    time.sleep(sec)
+
+            threading.Thread(target=_keepalive, args=(ext, interval), daemon=True).start()
+    except Exception as e:
+        print(f"[MCP] keepalive init error: {e}")
+
+    mcp.run(transport="http", host=host, port=port)
