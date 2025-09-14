@@ -634,22 +634,31 @@ async def admin_unblock_app_by_email(email: str, app_bundle_id: str, db: Session
 
 @app.post("/admin/end-blocking-by-email")
 async def admin_end_blocking_by_email(email: str, db: Session = Depends(get_db)):
-    """End a user's blocking session by email (no auth, for MCP/demo)."""
+    """End ALL active blocking sessions for a user by email (no auth, for MCP/demo)."""
     user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    active_session = db.query(BlockingSession).filter(
+    active_sessions = db.query(BlockingSession).filter(
         BlockingSession.user_id == user.id,
         BlockingSession.is_active == True
-    ).first()
-    if not active_session:
-        raise HTTPException(status_code=404, detail="No active blocking session found")
+    ).all()
+    if not active_sessions:
+        raise HTTPException(status_code=404, detail="No active blocking sessions found")
 
-    active_session.ended_at = datetime.utcnow()
-    active_session.is_active = False
+    # End ALL active sessions for this user
+    session_ids = []
+    for session in active_sessions:
+        session.ended_at = datetime.utcnow()
+        session.is_active = False
+        session_ids.append(session.id)
+
     db.commit()
-    return {"message": "Blocking session ended", "session_id": active_session.id}
+    return {
+        "message": f"All blocking sessions ended ({len(session_ids)} sessions)",
+        "session_ids": session_ids,
+        "sessions_ended": len(session_ids)
+    }
 
 @app.post("/admin/start-blocking-by-email")
 async def admin_start_blocking_by_email(
