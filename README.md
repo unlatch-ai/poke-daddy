@@ -2,7 +2,7 @@
 
 *Making Poke the accountability partner that puts you back in control of your screen time.*
 
-**Built for the Poke Hackathon 2024** by Kevin Fang and Olsen Budanur.
+**Built for the Poke Hackathon 2025** by Kevin Fang and Olsen Budanur.
 
 ## 🌟 What is PokeDaddy?
 
