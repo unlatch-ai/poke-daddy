@@ -44,4 +44,4 @@ PokeDaddy consists of three main components:
 See [CLAUDE.md](./CLAUDE.md) for detailed setup instructions and development commands.
 
 
-Disclaimer: Heavily referenced project by @OzTamir: https://github.com/OzTamir/broke
+Disclaimer: Heavily referenced project by @OzTamir: https://github.com/OzTamir/broke (Apache 2.0)
